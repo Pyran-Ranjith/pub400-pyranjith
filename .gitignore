@@ -1,0 +1,39 @@
+# Ignore compiled objects and binaries
+*.module
+*.pgm
+*.srvpgm
+*.binder
+
+# Ignore temp files
+*.lst
+*.log
+*.tmp
+
+# Ignore generated files from builds or deployment
+*.xml
+*.json
+*.out
+*.err
+
+# Ignore local IDE settings (RDi or VS Code extensions)
+.vscode/
+.metadata/
+*.class
+*.jar
+
+# Ignore i Project files if using RDi (IBM Rational Developer)
+.metadata/
+.settings/
+.project
+.classpath
+
+# Ignore IFS binary output or build folders
+/build/
+out/
+bin/
+target/
+
+# Ignore Mac and Windows system files
+.DS_Store
+Thumbs.db
+desktop.ini
