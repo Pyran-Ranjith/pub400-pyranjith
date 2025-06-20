@@ -1,0 +1,23 @@
+             DCL        VAR(&VAR1) TYPE(*CHAR) LEN(30)
+             DCL        VAR(&FROMMBR) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&TOSTMF) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&MLNAME) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&MLSEU) TYPE(*CHAR) LEN(4)
+             CHGVAR     VAR(&MLNAME) VALUE('RTVCURLIB')
+             CHGVAR     VAR(&MLSEU) VALUE('clle')
+             CHGVAR     VAR(&FROMMBR) +
+                          VALUE('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                         ILE/' *CAT &MLNAME *TCAT '.MBR')
+             CHGVAR     VAR(&TOSTMF) +
+                          VALUE('/HOME/user0174/BackupToPc/' *CAT +
+                          &MLNAME *TCAT '1.' *TCAT &MLSEU)
+
+
+             CPYTOSTMF  FROMMBR(&FROMMBR) TOSTMF(&TOSTMF) +
+                          STMFOPT(*REPLACE)
+
+
+
+
+
+

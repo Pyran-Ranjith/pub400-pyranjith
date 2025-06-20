@@ -1,0 +1,130 @@
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      REF(*LIBL/R473SUM1P )
+     A                                      PRINT
+      * ‚ For indds in RPGLE pgm. . .
+     A                                      INDARA
+     A                                      CA03(03 'F3=Exit')
+     A          R HEADCOM
+     A*  Common Header
+     A*                                     OVERLAY
+     A                                  1  2USER
+     A                                      COLOR(BLU)
+     A                                  1 63TIME
+     A                                      COLOR(BLU)
+     A            Z1DATE          L     1 72DATFMT(*DMY)
+     A                                      COLOR(BLU)
+     A            Z1SCREEN      12A  O  2  2COLOR(BLU)
+     A                                  2 72SYSNAME
+     A                                      COLOR(BLU)
+     A                                  1 33'Heading. . . .'
+     A                                      DSPATR(HI)
+      *
+     A          R SFL01                     SFL
+     A            Z1RRN          4S 0H
+     A            Z1OPT          1A  B  8  3
+     A            TORDNO         7  0O  8  6EDTCDE(4)
+     A            TOONUM         7  0O  8 14EDTCDE(4)
+     A            DERFOU         5  0O  8 22EDTCDE(4)
+     A            DERBLF        15   O  8 28
+     A            DERCLC         5  0O  8 45EDTCDE(4)
+     A            DETQTY         7  0O  8 51EDTCDE(4)
+     A          R CTL01                     SFLCTL(SFL01)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0012)
+     A                                      OVERLAY
+     A  31                                  SFLDSP
+     A  30                                  SFLDSPCTL
+     A N30                                  SFLCLR
+     A  30                                  SFLEND(*MORE)
+     A                                      CA05(05 'F5=Refresh')
+     A*         R HEADER
+     A*                                     OVERLAY
+     A                                  1  2USER
+     A                                      COLOR(BLU)
+     A                                  1 63TIME
+     A                                      COLOR(BLU)
+     A            Z1DATE          L     1 72DATFMT(*DMY)
+     A                                      COLOR(BLU)
+      *
+     A                                  1 28'XXXXHeading. . .'
+     A                                      DSPATR(HI)
+     A            Z1SCREEN      12A  O  2  2COLOR(BLU)
+     A                                  2 72SYSNAME
+     A                                      COLOR(BLU)
+     A                                  4  2'Serch:'
+     A                                      DSPATR(HI)
+     A                                  4 12'Optons: 5=Display record'
+     A                                      DSPATR(HI)
+     A                                      COLOR(BLU)
+     A            Z1POSITIONR        B  5  6REFFLD(TORDNO)
+     A                                      EDTCDE(4)
+     A                                      DSPATR(HI)
+     A            Z2POSITIONR        B  5 14REFFLD(TOONUM)
+     A                                      EDTCDE(4)
+     A                                      DSPATR(HI)
+     A            Z3POSITION    15   B  5 28
+     A                                      DSPATR(HI)
+     A                                  6  2'Opt'
+     A                                      DSPATR(HI)
+     A                                  6  6'Custom '
+     A                                      DSPATR(HI)
+     A                                  7  6'ord no.'
+     A                                      DSPATR(HI)
+     A                                  6 14'Purchs '
+     A                                      DSPATR(HI)
+     A                                  7 14'ord no.'
+     A                                      DSPATR(HI)
+     A                                  6 22'Suply'
+     A                                      DSPATR(HI)
+     A                                  7 22'#    '
+     A                                      DSPATR(HI)
+     A                                  6 28'Supl '
+     A                                      DSPATR(HI)
+     A                                  7 28'Inv# '
+     A                                      DSPATR(HI)
+     A                                  6 45'Clnt#'
+     A                                      DSPATR(HI)
+     A                                  6 51'Total  '
+     A                                      DSPATR(HI)
+     A                                  7 51'qty    '
+     A                                      DSPATR(HI)
+     A          R FOOTER
+     A                                 23  3'F3=Exit   F5=Refresh'
+     A                                      COLOR(BLU)
+     A          R DISPLAY
+      *  Common Header
+     A                                  1  2USER
+     A                                      COLOR(BLU)
+     A                                  1 63TIME
+     A                                      COLOR(BLU)
+     A            Z1DATE          L     1 72DATFMT(*DMY)
+     A                                      COLOR(BLU)
+     A            Z1SCREEN      12A  O  2  2COLOR(BLU)
+     A                                  2 72SYSNAME
+     A                                      COLOR(BLU)
+      *  Content
+     A                                  1 33'Display record'
+     A                                      DSPATR(HI)
+     A                                  4  4'Press enter to continue'
+     A                                      DSPATR(BL)
+     A                                      COLOR(BLU)
+     A                                  7  4'Customer order no .:'
+     A                                      DSPATR(HI)
+     A                                  8  4'Purchase order no .:'
+     A                                      DSPATR(HI)
+     A                                  9  4'Supplyer no . . . .:'
+     A                                      DSPATR(HI)
+     A                                 10  4'Supplyer invoice no:'
+     A                                      DSPATR(HI)
+     A                                 11  4'Client no . . . . .:'
+     A                                      DSPATR(HI)
+     A                                 12  4'Totl quantity . . .:'
+     A                                      DSPATR(HI)
+     A                                 23  4'F3 = Exit'
+     A                                      COLOR(BLU)
+     A            TORDNO    R        O  7 26EDTCDE(4)
+     A            TOONUM    R        O  8 26EDTCDE(4)
+     A            DERFOU         5  0   9 26EDTCDE(4)
+     A            DERBLF        15     10 26
+     A            DERCLC         5  0  11 26EDTCDE(4)
+     A            DETQTY         7  0  12 26EDTCDE(4)

@@ -1,0 +1,68 @@
+   /*                                                                       */
+         /*  Initial pgm */
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+         /* Create globle variables */
+         /* If dtaarea not exist create it */
+             CRTDTAARA  DTAARA(QTEMP/GLCURLIB) TYPE(*CHAR) LEN(10) +
+                          VALUE('*CURLIB') TEXT('Current library')
+             MONMSG     MSGID(CPF1023)
+             CRTDTAARA  DTAARA(QTEMP/GLSRCFIL) TYPE(*CHAR) LEN(10) +
+                          VALUE(' ') TEXT('Souce file')
+             MONMSG     MSGID(CPF1023)
+
+LOOP:        RTVDTAARA  DTAARA(QTEMP/GLSRCFIL *ALL) RTNVAR(&SRCFIL)
+             CHKOBJ     OBJ(*CURLIB/&SRCFIL) OBJTYPE(*FILE)
+             MONMSG     MSGID(CPF9801 CPD0078 CPF0001) EXEC(DO)
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA('Source +
+                          file in dataarea is empty or dos not  +
+                          exist. . Please enter source file on next +
+                          screeen') TOPGMQ(*EXT) MSGTYPE(*NOTIFY) +
+                          /* if blank quit */
+             ?          CHGDTAARA ?*DTAARA(QTEMP/GLSRCFIL (1 10))
+             GOTO       CMDLBL(LOOP)
+             ENDDO
+  /* Get curlib */
+             CRTBNDCL   PGM(QTEMP/USROPT) +
+                          SRCFILE(*CURLIB/&SRCFIL)
+
+             CRTBNDCL   PGM(QTEMP/USROPT$) +
+                          SRCFILE(*CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/USROPT)
+
+             CRTBNDCL   PGM(QTEMP/CRTDTAARE) +
+                          SRCFILE(*CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/CRTDTAARE)
+
+             CRTCMD     CMD(QTEMP/CVTPRTPF) PGM(CVTPRTPF$) +
+                          SRCFILE(*CURLIB/&SRCFIL)
+             CRTBNDCL PGM(QTEMP/CVTPRTPF$) SRCFILE(*CURLIB/&SRCFIL)
+             CVTPRTPF   CMD(DSPLIBL OUTPUT(*PRINT)) PRTF(QPRTLIBL) +
+                          TOFILE(QTEMP/QPRTLIBLPF)
+             CRTBNDCL PGM(QTEMP/RTVCURLIB) SRCFILE(*CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/RTVCURLIB)
+
+             RTVDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) RTNVAR(&CURLIB)
+             CRTBNDCL PGM(QTEMP/CHGLIBLST) SRCFILE(&CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/CHGLIBLST)
+             CRTBNDCL   PGM(QTEMP/MBRLSTOUTF) SRCFILE(&CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/MBRLSTOUTF)
+             CRTBNDCL   PGM(QTEMP/EDTSRCINIT) +
+                          SRCFILE(&CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/EDTSRCINIT)
+             CRTBNDRPG  PGM(QTEMP/EDTSRCR) SRCFILE(&CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/EDTSRCR)
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA('Initial +
+                          pgm executed succesfully') MSGTYPE(*COMP)
+/* Programs to be called after this inipgm */
+
+/* Sourspf to IFS */
+             CRTBNDCL   PGM(QTEMP/SRCFTOIFS) SRCFILE(&CURLIB/&SRCFIL)
+        /*   CALL       PGM(QTEMP/SRCFTOIFS)   */
+/* Create menues */
+             CRTBNDCL   PGM(QTEMP/CRTMNUS  ) SRCFILE(&CURLIB/&SRCFIL)
+             CALL       PGM(QTEMP/CRTMNUS  ) PARM(MNUMAIN)
+
+             CRTBNDCL   PGM(QTEMP/CRTSRCLST) SRCFILE(&CURLIB/&SRCFIL)
+             CRTBNDCL   PGM(QTEMP/CRTSRCLST$) SRCFILE(&CURLIB/&SRCFIL)
+             CRTBNDCL   PGM(QTEMP/CHGMBRATR) SRCFILE(&CURLIB/&SRCFIL)

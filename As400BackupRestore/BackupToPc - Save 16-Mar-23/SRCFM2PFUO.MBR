@@ -1,0 +1,18 @@
+/*                                                        */
+/* Copy source file member to pf                          */
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&msg   ) TYPE(*CHAR) LEN(100)
+             RTVDTAARA  DTAARA(QTEMP/glCURLIB *ALL) RTNVAR(&CURLIB)
+/*           RTVDTAARA  DTAARA(QTEMP/glSRCFIL *ALL) RTNVAR(&SRCFIL)  */
+             CHGVAR     VAR(&SRCFIL  ) VALUE('BACKUPTOP0')
+/*           CLRPFM     FILE(&CURLIB/&SRCFIL) MBR(QAUOOPT)  */
+             CPYF       FROMFILE(&CURLIB/&SRCFIL) +
+                          TOFILE(&CURLIB/QAUOOPTQGP) +
+                          FROMMBR(QAUOOPT) TOMBR(*FIRST) +
+                          MBROPT(*REPLACE) CRTFILE(*NO) FMTOPT(*CVTSRC)
+             CHGVAR     VAR(&MSG) VALUE('Copy source file member to +
+                          pf compleated. .')
+
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSG) +
+                          MSGTYPE(*COMP)

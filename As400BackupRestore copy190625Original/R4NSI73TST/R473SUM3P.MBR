@@ -1,0 +1,33 @@
+     A*                                     REF(REPERTOIRE)
+     A          R D2DGENDF
+     A*           DERFOU    R    5  0       REFFLD(BRRFOU)
+     A            DERFOU         5  0
+     A                                      TEXT('SUPPLIER#')
+     A                                      COLHDG('SUPPLIER#')
+     A*           DERBLF    R               REFFLD(BRRBLF)
+     A            DERBLF        15
+     A                                      TEXT('SUPPLIER INVOICE#')
+     A                                      COLHDG('SUPPLIER' 'INVOICE#')
+     A            DETYPE         1A         TEXT('TYPE')
+     A                                      COLHDG('TYPE')
+     A*           DERCLC    R               REFFLD(FIRCLC)
+     A            DERCLC         5  0
+     A                                      TEXT('CLIENT#')
+     A                                      COLHDG('CLIENT#')
+     A*           DENVFC    R               REFFLD(FINVFC)
+     A            DENVFC         2  0
+     A                                      TEXT('DOOR#')
+     A                                      COLHDG('DOOR#')
+     A*           DENFCL    R               REFFLD(FLNFCL)
+     A            DENFCL         7  0
+     A                                      TEXT('INVOICE#/TS#')
+     A                                      COLHDG('INVOICE#' 'TS#')
+     A            DETQTY         7  0       TEXT('TOTAL QUANTITY')
+     A                                      COLHDG('TOTAL' 'QUANTITY')
+     A            DEERR          1A         TEXT('ERROR')
+     A                                      COLHDG('ERROR')
+     A            DECASE         1A         TEXT('REPLICATE CASE#')
+     A                                      COLHDG('REPLICATE' 'CASE#')
+     A*
+     A*         K DERFOU
+     A*         K DERBLF

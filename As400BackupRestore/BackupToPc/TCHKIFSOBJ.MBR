@@ -1,0 +1,14 @@
+             PGM
+              DCL        VAR(&OBJ) TYPE(*CHAR) LEN(256)
+              DCL        VAR(&RESULT) TYPE(*LGL) LEN(1)
+              DCL        VAR(&MSG) TYPE(*CHAR) LEN(200)
+                /*=======*/
+              CHGVAR     VAR(&OBJ) VALUE('/qibm')
+              IFSTOOL/CHKIFSOBJ OBJ(&OBJ) RESULT(&RESULT)
+              IF         COND(&RESULT) THEN(CHGVAR VAR(&MSG) +
+                           VALUE(&OBJ *TCAT ' was found'))
+              ELSE       CMD(CHGVAR VAR(&MSG) VALUE(&OBJ *TCAT ' was +
+                           not found'))
+              SNDPGMMSG  MSGID(CPF9897) MSGF(QSYS/QCPFMSG) MSGDTA(&MSG)
+              RETURN
+              ENDPGM

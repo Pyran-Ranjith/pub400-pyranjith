@@ -1,0 +1,84 @@
+/* Retrive curlib                                                    */
+/* +
+   CRTCLMOD MODULE( mylib/LSTUSRDSE )            +
+            SRCFILE( mylib/QCLTSRC )             +
+            SRCMBR( LSTUSRDSE )                  +
+            LOG( *NO )                           +
+                                                 +
+   CRTPGM PGM( mylib/LSTUSRDSE )                 +
+          BNDDIR( QC2LE )                        +
+          ACTGRP( *NEW )                         +
+          USRPRF( *OWNER )                       +
+*/
+pgm  ( +
+     )
+
+   dcl   &msgdta      *char  128
+
+   dcl   &NL          *char    1     value( x'15' )
+   dcl   &x00         *char    1     value( x'00' )
+
+   dcl   &rc          *int
+
+   dcl   &eofUSRDSE   *lgl           value( '0' )
+
+   /* Compile over the IBM-supplied model file... */
+      dclf  QADSPUPB
+
+   /* List user profiles to a temporary file... */
+      dspusrprf   *ALL  output( *OUTFILE ) outfile( QTEMP/LSTUSRDSE )
+
+   /* ...and point the compiled file to our temporary one... */
+      ovrdbf      QADSPUPB  tofile( QTEMP/LSTUSRDSE )
+
+   /* Set a trivial page heading... */
+      chgvar           &msgdta       ( +
+                                       'List Disabled Profiles' *cat  +
+                                       &NL          *cat  +
+                                       &NL          *cat  +
+                                       &x00               +
+                                  )
+
+/* Assign our printed output to QPRINT... */
+   ovrdbf      STDOUT  +
+                 tofile( QPRINT )  +
+                 ovrscope( *JOB ) +
+                 share( *YES )
+/* Print our trivial heading... */
+   callprc        'printf'            ( +
+                                        &msgdta        +
+                                      ) +
+                                rtnval(&rc )
+
+/* Now loop through our temporary file until EOF... */
+
+   dountil  (&eofUSRDSE )
+
+      rcvf
+      monmsg ( cpf0864 )  exec( do )
+         chgvar &eofUSRDSE   '1'
+         iterate
+      enddo
+   /* If this one is '*DISABLED', print a line... */
+      if ( &UPSTAT *eq '*DISABLED' )  do
+         chgvar     &msgdta       ( +
+                                    &UPUPRF      *cat  +
+                                    '  '         *cat  +
+                                    &UPTEXT      *cat  +
+                                    &NL          *cat  +
+                                    &x00               +
+                                  )
+         callprc  'printf'            ( +
+                                        &msgdta        +
+                                      ) +
+                                rtnval(&rc )
+      enddo
+   enddo
+
+   /* Clear away our override... */
+      dltovr      STDOUT  lvl( *JOB )
+
+   /* ...and get out of here... */
+      return
+
+   endpgm

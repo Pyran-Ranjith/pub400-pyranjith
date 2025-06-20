@@ -1,0 +1,6 @@
+         /* Copy sourc file member to ifs */
+             CPYTOSTMF  +
+                          FROMMBR('/QSYS.LIB/USER04561.LIB/BACKUPTOPC+
+                          .FILE/CRTDIR.MBR') +
+                          TOSTMF('/HOME/user0456/BackupToPc/crtdir.cl+
+                          le') STMFOPT(*REPLACE)

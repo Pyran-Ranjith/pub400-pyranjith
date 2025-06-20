@@ -1,0 +1,17 @@
+     A*The following procedure allows the system operator to send a message to several display
+     A*stations. When the system operator calls the program containing this procedure, it displays a
+     A*prompt which the system operator can enter the type of message to be sent and the text for
+     A*the message. The procedure concatenates the date, time, and text of the message.
+     A                                      DSPSIZ(24 80)
+     A          R PROMPT                    TEXT('Prompt')
+     A                                      BLINK
+     A                                      CA03(91 'Return')
+     A                                  1  2'Send Messages To Workstations'
+     A                                       DSPATR(HI)
+     A                                  3  2'TYPE'
+     A            TYPE           1   I   +28VALUES('N' 'B')
+     A                                      CHECK(ME)
+     A                                      DSPATR(MDT)
+     A                                    +3'(N = No breaks  B = Break)'
+     A                                  5  2'Text'
+     A            TEXT         100   I    +2LOWER

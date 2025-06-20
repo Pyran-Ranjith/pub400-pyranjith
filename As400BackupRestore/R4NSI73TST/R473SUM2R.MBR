@@ -1,0 +1,194 @@
+      * ˆWritten by MR on 12-Mar-2023
+      * ˆtot-free version
+      *
+     h COPYRIGHT('Ranjith Jayawardana All rights reserved.')
+     h option(*nodebugio:*srcstmt:*nounref) dftactgrp(*no)
+      *
+      * ‚ Current serch positions
+     d Cur           e ds                  qualified extname(R473SUM1l)
+     d   Position1   e                     extfld(TORDNO)
+     d   Position2   e                     extfld(TOONUM)
+     d   Position3   e                     extfld(DERBLF)
+      * ‚ Previous serch positions
+     d Prv           e ds                  qualified extname(R473SUM1l)
+     d   Position1   e                     extfld(TORDNO)
+     d   Position2   e                     extfld(TOONUM)
+     d   Position3   e                     extfld(DERBLF)
+      *  ‚Empty serch positions
+     d Emp           e ds                  qualified extname(R473SUM1l)
+     d   Position1   e                     extfld(TORDNO)
+     d   Position2   e                     extfld(TOONUM)
+     d   Position3   e                     extfld(DERBLF)
+
+      **free
+      *  ctl-opt option(*nodebugio:*srcstmt:*nounref) dftactgrp(*no);
+
+       dcl-f R473SUM1d        workstn indds(Dspf) sfile(SFL01:Z1RRN) ; //dspf
+       dcl-f R473SUM1l  keyed  rename(TCBOPOR:filfmt1); // TCBOPO:TORDNO  jlf
+       dcl-f R473SUM2l  keyed  rename(TCBOPOR:filfmt2); // TCBOPO:TOONUM  jlf
+       dcl-f R473SUM3l  keyed  rename(D2DGENDf:filfmt3); // 2DGEND:DERBLF jlf
+      * ‚Program status data structure. .
+         dcl-ds PgmDs psds qualified ;  //Program status data structure
+           PgmName *proc ;              //Program name
+         end-ds ;
+      * ‚Screen indicators used. .
+         dcl-ds Dspf qualified ; // data sructure
+           Exit ind pos(3) ;    // F3 exit
+           Refresh ind pos(5) ; // F5 refresh
+           SflDspCtl ind pos(30) ;
+           SflDsp ind pos(31) ;
+         end-ds ;
+      * ‚Constents . .
+           dcl-c MaxSfl 9999 ;  // Maximum subile length
+      * ‚Local variables used here. . .
+           dcl-s SearchField   char(1) ;
+      *  -------------- B O D Y ------------------------------------
+      *  ‚Initialize the progrm variables usd here. .
+            Initialize();  //Initialize the progrm variables usd
+      *
+               setll    *loval     filfmt1                           ;
+                                   LoadSubfile()                     ;
+                         dow       (1 = 1)                           ;
+                         write     FOOTER                            ;
+                         exfmt     CTL01                             ;
+                                   GetScrnFlds()                     ;
+                         if        (Dspf.Exit)                       ;
+                         leave                                       ;
+      *  ‚Refrsh pressed. .
+                         elseif    (Dspf.Refresh)                     ;
+                                   Refresh()                          ;
+                         iter                                         ;
+      *  ‚Search possitions handlie here. .                           ;
+                         elseif    (Z1POSITION>0 or Z2POSITION>0
+                                   or Z3POSITION<>*blanks)            ;
+                                   PositionTo()                       ;
+                         iter                                         ;
+      *                                                               ;
+                         endif                                        ;
+      *  ‚Option processed here. .                                    ;
+                         if        (Dspf.SflDsp) ;  // if subfile not empty
+                                   ReadSubfile()                      ;
+                         endif                                        ;
+                         enddo                                        ;
+      *                                                               ;
+
+      *  ‚Display End of pgm msg . .                                  ;
+            dsply0() ; //Display msg
+            *inlr = *on  ; //Pgm end
+      *  ---------------- S U B  P R O C ---------------------------
+         dcl-proc dsply0 ;
+                 dsply 'End of Program' ;
+         end-proc ;
+      *
+         dcl-proc  Initialize ;
+      *  ‚Inetilizing program variables. . .
+                                   Z1SCREEN = %trimr(PgmDs.PgmName) + '-1' ;
+                                   Z1DATE = %date() ;
+                                   SearchField = '1' ;
+      *  ‚Seting Emply positon data structure. . .
+                                   Emp.Position1 = *zeros ;
+                                   Emp.Position2 = *zeros ;
+                                   Emp.Position3 = *blanks;
+      *  ‚Now emply other 2 positon data structure Cur and Prv. . .
+                                   Cur = Emp ;
+                                   Prv = Emp ;
+          end-proc ;
+      *
+         dcl-proc  GetScrnFlds;
+      *  ‚Geting screen fields to local variables. .
+                                   Cur.Position1 = Z1POSITION  ;
+                                   Cur.Position2 = Z2POSITION  ;
+                                   Cur.Position3 = Z3POSITION  ;
+          end-proc ;
+      *
+          dcl-proc   LoadSubfile;
+      *  ‚Loading subfile with data. .
+                                   Dspf.SflDspCtl = *off;
+                                   Dspf.SflDsp = *off;
+                         write     CTL01 ;
+                                   Dspf.SflDspCtl = *on ;
+                                   Z1OPT = ' ';
+                         for       Z1RRN = 1 to MaxSfl ;
+        //Populate from file TCBOPOD fields  TORDNO and TOONUM
+                         if (SearchField = '3');
+                         read      filfmt3 ;
+      *  ‚Ppulate from file TCBOPOD fields  TORDNO and TOONUM
+                         elseif   (SearchField = '2');
+                         read      filfmt2;
+                         else ;
+                         read      filfmt1 ;
+                         endif ;
+      *
+                         if        (%eof) ;
+                         leave ;
+                         endif ;
+
+                         write     SFL01 ;
+                         endfor ;
+                         if        (Z1RRN > 1) ;
+                                   Dspf.SflDsp = *on ;
+                         endif ;
+          end-proc ;
+      *
+          dcl-proc ReadSubfile ;
+      *  ‚Read subfile changes made. .
+                         dow       (1 = 1) ;
+                         readc     SFL01   ;               //if opt changed
+                         if        (%eof)  ;
+                         leave ;
+                         endif ;
+      *  ‚Option handling
+                         if       (Z1OPT = '5');
+                         exfmt     display ;
+                                   Dspf.Exit = *off ;
+                                   Z1OPT = ' ' ;
+                         endif ;
+
+                                   Z1OPT = ' ' ;
+                         update    SFL01 ;
+                         enddo ;
+          end-proc ;
+      *
+      *
+          dcl-proc    Refresh ;
+      *  ‚Refresh the screen by pressing F5. .
+                                   Z1POSITION = 0 ;
+                                   Z2POSITION = 0 ;
+                                   Cur = Emp ;
+                                   Prv = Emp ;
+                                   SearchField = '1';
+           setll *loval            filfmt1 ;
+                                   LoadSubfile() ;
+          end-proc ;
+      *
+           dcl-proc  PositionTo ;
+      *  ‚Position the record pointer according to the serch field. .
+                         if        (Cur.Position1 <> Prv.Position1)  ;
+                                   SearchField = '1'                 ;
+                                   Prv.Position1= Cur.Position1      ;
+                                   Z2POSITION   = 0                  ;
+                                   Prv.Position2 = 0                 ;
+                                   Z3POSITION   = *blanks            ;
+                                   Prv.Position3 = *blanks           ;
+              setll Z1POSITION     filfmt1                           ;
+                                   LoadSubfile()                      ;
+                         elseif    (Cur.Position2 <> Prv.Position2)   ;
+                                   SearchField = '2'                  ;
+                                   Prv.Position2= Cur.Position2       ;
+                                   Z1POSITION   = 0                    ;
+                                   Prv.Position1 = 0                   ;
+                                   Z3POSITION   = *blanks              ;
+                                   Prv.Position3 = *blanks             ;
+              setll Z2POSITION     filfmt2                           ;
+                                   LoadSubfile()                       ;
+                         elseif    (Cur.Position3 <> Prv.Position3) ;
+                                   SearchField = '3'                ;
+                                   Prv.Position3= Cur.Position3     ;
+                                   Z1POSITION   = 0                 ;
+                                   Prv.Position1 = 0                ;
+                                   Z2POSITION   = 0                 ;
+                                   Prv.Position2 = 0                ;
+              setll Z3POSITION     filfmt3                           ;
+                                   LoadSubfile()                    ;
+                         endif                                      ;
+         end-proc                                                   ;

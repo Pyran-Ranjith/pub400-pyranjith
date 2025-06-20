@@ -1,0 +1,30 @@
+/* Retrive curlib FRM dspjob --> prtf                                */
+
+             DCLF       FILE(QTEMP/QPRTLIBLPF)
+             DCL        VAR(&LIB0) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&lib) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&type) TYPE(*CHAR) LEN(3)
+DCL &EOF *LGL
+             MONMSG     MSGID(CPF0864) EXEC(GOTO END)
+
+ DOWHILE COND(*not &EOF)
+             CHGVAR     VAR(&LIB) VALUE(%SST(&QPRTLIBLPF 4 10))
+             CHGVAR     VAR(&TYPE) VALUE(%SST(&QPRTLIBLPF 16 3))
+             IF         COND(&TYPE = 'CUR') THEN(GOTO CMDLBL(OK))
+
+RCVF
+             MONMSG     MSGID(CPF0864) EXEC(GOTO END)
+ENDDO
+GOTO END
+OK:
+           CHGVAR     VAR(&LIB0) VALUE(&LIB)
+             CHGDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) VALUE(&LIB0)
+          /* SNDUSRMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&LIB0 +
+                         *CAT &type)        */
+END:
+
+
+
+
+
+

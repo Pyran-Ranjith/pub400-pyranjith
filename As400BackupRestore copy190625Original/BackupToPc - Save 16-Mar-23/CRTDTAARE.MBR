@@ -1,0 +1,7 @@
+         /* Create globle variables */
+             CRTDTAARA  DTAARA(QTEMP/GLCURLIB) TYPE(*CHAR) LEN(10) +
+                          VALUE(' ') TEXT('Current library')
+             MONMSG     MSGID(CPF1023)
+             CRTDTAARA  DTAARA(QTEMP/GLSRCFIL) TYPE(*CHAR) LEN(10) +
+                          VALUE(' ') TEXT('Souce file')
+             MONMSG     MSGID(CPF1023)

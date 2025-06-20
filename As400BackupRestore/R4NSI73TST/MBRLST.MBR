@@ -1,0 +1,19 @@
+R473SUM0C  CLLE       R4.73.0.SUM Inttial Program Crt PF+LF+Populate
+R473SUM1C  CLLE       R4.73.1 SUM PF Populate PF TCBOPO
+R473SUM1D  DSPF       R4.73.1.SUM subfile search+D Spec                X
+R473SUM1D$ DSPF       R4.73.1.SUM subfile search+D Spec27-oct-2020 14.20
+R473SUM1L  LF         R4.73.1 SUM subfile search+D Spec TCBOPO:TORDNOjlX
+R473SUM1P  PF         R4.73.1 SUM subfile search+D Spec TCBOPO         X
+R473SUM1R  RPGLE      R4.73.1.SUM subfile search+D Spec                X
+R473SUM1R$ RPGLE      R4.73.1.SUM subfile search+D Spec            14.20
+R473SUM2C  CLLE       R4.73.1 SUM PF - Populate PF      BLFACC
+R473SUM2L  LF         R4.73.1 SUM subfile search+D Spec TCBOPO:TOONUMjlX
+R473SUM2P  PF         R4.73.1 SUM subfile search+D Spec BLFACC         X
+R473SUM2R  RPGLE      R4.73.1.SUM subfile search+D Spec **free
+R473SUM2R$ RPGLE      R4.73.1.SUM subfile search+D Spec **free
+R473SUM3C  CLLE       R4.73.1 SUM PF - Populate PF      D2DGEND
+R473SUM3L  LF         R4.73.1 SUM subfile search+D D2DGEND:DERBLF JLF  X
+R473SUM3P  PF         R4.73.1 SUM subfile search+D Spec D2DGEND        X
+R473SUM7R  RPGLE      R4.73.1.SUM subfile search+D Spec tot-free       X
+R473SUM8R  RPGLE      R4.73.1.SUM subfile search+D Spec tot-free       X
+MBRLST     TXT        List of all members of src file

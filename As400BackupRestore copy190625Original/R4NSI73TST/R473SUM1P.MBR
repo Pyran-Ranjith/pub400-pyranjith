@@ -1,0 +1,3 @@
+     A          R TCBOPOR
+     A            TORDNO         7  0       COLHDG('Custom ' 'ord no.')
+     A            TOONUM         7  0       COLHDG('Purchs ' 'ord no.')

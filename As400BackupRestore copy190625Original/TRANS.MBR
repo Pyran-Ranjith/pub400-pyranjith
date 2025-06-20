@@ -1,0 +1,1169 @@
+https://www.rpgpgm.com/2017/01/recovering-source-for-physical-file.html#more
+Recovering source for a Physical file
+Dcember 29, 2019
+-------------------------------------------------------------------------
+Recovering source for a Physical file
+recover source for physical file
+I am sure this has happened to us all: I have an object and the source it 
+was compiled from is missing. In an earlier posts I showed how I could 
+retrieve the source code from a program, but what about other object 
+types?
+
+Many, many years ago I wrote a command and programs to retrieve the source 
+code for various types of files. When I recently found a physical file 
+with its source missing I thought "I will just use my retrieve command". 
+To my horror I found the command source and object in my personal tools 
+library, but the programs and their source were missing. I may only use 
+this command once in a very long time, but in the past it had proved 
+invaluable in recovering the source for physical, display and printer 
+files. I decided to go ahead and recreate the programs, in several stages. 
+First I want to be able to recover the source for a physical file, then 
+I would move onto the more complicated arrangements found within display 
+and printer files. This post will describe the first stage of this 
+journey, recovering the source for a physical file. The later stages 
+will be covered in future posts.
+
+Within the IBM i operating system there is already a way to convert a 
+physical file object into SQL DDL source. I could then use that 
+generated DDL source and manually enter the DDS source code for the 
+Physical file. But I want to be able to generate DDS from the file 
+object.
+
+I decided to create a test file of the most common data types and 
+keywords I encounter in my daily work:
+
+Unique keys
+With reference fields to other files
+Fields defined within the file (not reference fields)
+Field text and column headings
+Aliases
+Edit codes and words
+Default values
+Variable length
+Allows null values
+I know there are many more things that can be included in a physical 
+file's definition, but almost all the files I deal with have just these 
+attributes.
+
+
+01  A                                      UNIQUE
+02  A                                      REF(PRODLIB/WHSMST)
+03  A          R TESTFILER                 TEXT('TESTFILE FILE')
+04  A            FALPHA        10A         TEXT('ALPHANUMERIC THAT KEEPS GOING-
+05  A                                       ON AND ON FOREVER')
+06  A                                      COLHDG('FIRST' 'FIELD' 'HEADING')
+07  A                                      ALIAS(FIRST_FIELD_ALPHANUMERIC)
+08  A            FPACKED        3P 0       TEXT('PACKED NUMERIC')
+09  A                                      COLHDG('SECOND' 'FIELD')
+10  A                                      EDTCDE(J)
+11  A                                      ALIAS(SECOND_FIELD_PACKED_NUMBER)
+12  A            FSIGNED        7S 2       TEXT('SIGNED NUMERIC')
+13  A                                      COLHDG('THIRD' 'FIELD')
+14  A                                      EDTWRD('0  -   .  ')
+15  A                                      ALIAS(THIRD_FIELD_SIGNED_NUMBER)
+16  A            FDATE           L         DATFMT(*USA)
+17  A                                      TEXT('DATE')
+18  A                                      ALIAS(FOURTH_FIELD_DATE)
+19  A            FTIME           T         TIMFMT(*HMS)
+20  A                                      TEXT('TIME')
+21  A                                      ALIAS(FIFTH_FIELD_TIME)
+22  A            FREF1     R               REFFLD(ORDNBR PRODLIB/MFGMST)
+23  A                                      DFT('A')
+24  A                                      ALIAS(SIXTH_FIELD_REFFLD)
+25  A            FREF2     R               REFFLD(ITMNBR)
+26  A                                      ALIAS(SEVENTH_FIELD_REFFLD)
+27  A            FLONG       1000A         TEXT('VARIABLE LENGTH FIELD')
+28  A                                      COLHDG('VARIABLE' 'LENGTH' 'FIELD')
+29  A                                      ALIAS(EIGHTH_FIELD_VARLEN)
+30  A                                      VARLEN
+31  A                                      ALWNULL
+32  A          K FALPHA
+33  A          K FSIGNED
+I am not going to describe the definition of all these fields as I am sure 
+you are all familiar with the DDS code above, do not worry if you are not 
+familiar with some of the code I am only going to compare this source code 
+to the one I will be retrieving from the object. What I will mention is 
+that I have defined references fields in two ways:
+
+FREF1 is defined by a REFFLD which gives the referenced field, file and 
+library names.
+FREF2 is defined by a REFFLD with only a field name. The reference for 
+the field is found in the file and library defined before the record 
+format, line 2.
+I could get the definition information for the physical file from various 
+Views I have written about in the past. As I will be using this program 
+as the basis for a future version that will include logic for display and 
+printer files, I will use the output files created by the Display File 
+Description, DSPFD, and the Display File Field Description, DSPFFD, 
+commands.
+
+I will be using two programs to retrieve the source for the file. The 
+first is a CL program:
+
+01  PGM PARM(&FILE &LIBRARY &ATTRIBUTE)
+
+02  DCL VAR(&FILE) TYPE(*CHAR) LEN(10)
+03  DCL VAR(&LIBRARY) TYPE(*CHAR) LEN(10)
+04  DCL VAR(&ATTRIBUTE) TYPE(*CHAR) LEN(5)
+
+05  CHKOBJ OBJ(QTEMP/OUTSRC) OBJTYPE(*FILE)
+06  MONMSG MSGID(CPF0000) EXEC(+
+07    CRTSRCPF FILE(QTEMP/OUTSRC) +
+08              TEXT('Output source file for retrieved +
+09                    DDS source'))
+
+10  RMVM FILE(QTEMP/OUTSRC) MBR(&FILE)
+11  MONMSG MSGID(CPF0000)
+
+12  ADDPFM FILE(QTEMP/OUTSRC) MBR(&FILE) +
+             TEXT('Retrieved DDS source') SRCTYPE(PF)
+
+13  DLTF FILE(QTEMP/@*)
+14  MONMSG MSGID(CPF0000)
+
+15  DSPFD FILE(&LIBRARY/&FILE) TYPE(*RCDFMT) +
+            OUTPUT(*OUTFILE) FILEATR(&ATTRIBUTE) +
+            OUTFILE(QTEMP/@RCDFMT)   /*Record format name*/
+
+16  DSPFD FILE(&LIBRARY/&FILE) TYPE(*ACCPTH) +
+            OUTPUT(*OUTFILE) FILEATR(&ATTRIBUTE) +
+            OUTFILE(QTEMP/@KEYS)   /*Key fields*/
+
+17  DSPFFD FILE(&LIBRARY/&FILE) OUTPUT(*OUTFILE) +
+             OUTFILE(QTEMP/@DSPFFD) /*Fields*/
+
+18  CALL PGM(RTVPFSRC1)
+
+19  RCLRSC
+
+20  ENDPGM
+Line 1: I am passing three parameters to this program. This means that 
+this program could be called by a command, from the command line, or 
+from another program with a display file. In my case this program will 
+be called by a command.
+
+Lines 2 – 4: Definitions of the variables for the name of the file, the 
+library it is in, and the attribute of the file. The last parameter is "
+for future development", in this program the only allowed value will be 
+*PF, which stands for physical file.
+
+Lines 5 – 9: I am going to place my retrieved source in a source file in 
+QTEMP. I need to check if it exists in this job, and if not to create it.
+
+Lines 10 – 11: If there is already a member in the OUTSRC source file 
+with the same name as the file in the &FILE parameter I remove it. I must 
+admit I could have cleared the member instead of this, but I decided to 
+do it this way.
+
+Line 12: I add a new member to OUTSRC with the same name as value in 
+&FILE. I also give it a source type of PF so it will look like a physical 
+file source when I look at the members in OUTSRC using PDM.
+
+Lines 13 – 14: I always start the name of my work files with the at sign 
+( @ ), one of the reasons is that it makes it easier to delete them all 
+in one Delete file statement.
+
+Line 15: I am using the DSPFD command to retrieve the information about 
+the record format and output it to an outfile, @RCDFMT. The type parameter 
+gives the command the type of information I want.
+
+Line 16: Using the DSPFD command again I retrieve the information about 
+any keys the physical file may have, and output it to an outfile, @KEYS.
+
+Line 17: Using the DSPFFD command I retrieve the information about the 
+fields in the file, and output it to the outfile @DSPFFD.
+
+Line 18: With all that information gathered I can now call my RPG program 
+to build the source records.
+
+Line 19: The Reclaim Resources command, RCLRSC is just to "clean up" any 
+lose ends left by the program.
+
+If I was to look in QTEMP before the RPG program is called I would see 
+the following files:
+
+
+                          Work with Objects Using PDM                  DEV730
+ Library . . . . .   QTEMP         Position to . . . . . . . . .           
+                                    Position to type  . . . . . .           
+
+ Opt  Object      Type        Attribute   Text
+      @DSPFFD     *FILE       PF-DTA      Output file for DSPFFD
+      @KEYS       *FILE       PF-DTA      Output file for DSPFD TYPE(*ACCPTH)
+      @RCDFMT     *FILE       PF-DTA      Output file for DSPFD TYPE(*RCDFMT)
+      OUTSRC      *FILE       PF-SRC      Output source file for retrieved DDS
+And if I was to work with the source file, OUTSRC, I would see the member 
+I created:
+
+
+                           Work with Members Using PDM
+ File  . . . . . .   OUTSRC   
+   Library . . . .     QTEMP    
+
+ Opt  Member      Type        Text
+      TESTFILE    PF          Retrieved DDS source
+The RPG program is the biggest I have shown in a post, therefore, I will 
+be showing it a piece at a time so not to confuse you, the reader, and I, 
+the author writing it. I have included the program in one piece at the 
+bottom of this post here. I am also only going to comment on the lines I 
+think need explaining, lines I think are self-explanatory will not be 
+described. Let me start with the first few lines of totally free form RPG.
+
+001  **free
+002  ctl-opt option(*nodebugio:*srcstmt) dftactgrp(*no) ;
+
+003  dcl-ds Format qualified ;
+004    File char(10) ;
+005    Name char(10) ;
+006    Text char(50) ;
+007  end-ds ;
+Line 2: My usual control options. The DFTACTGROP(*NO) is needed as I will 
+be using subprocedures rather than subroutines.
+
+Lines 3 – 7: I have defined this data structure to hold the information 
+about the file's record format when I get it from the @RCDFMT file using 
+SQL.
+
+This next data structure is information I need to build the source lines, 
+which I will get from the file @DSPFFD.
+
+008  dcl-ds Fields qualified dim(1000) ;
+009    Name char(10) ;
+010    BytesLength packed(5) ;
+011    NbrOfDigits packed(2) ;
+012    Type char(1) ;
+013    DecPos packed(2) ;
+014    Text char(50) ;
+015    RefFile char(10) ;
+016    RefLib char(10) ;
+017    RefFormat char(10) ;
+018    RefField char(10) ;
+019    ColHdg1 char(20) ;
+020    ColHdg2 char(20) ;
+021    ColHdg3 char(20) ;
+022    EditCode char(2) ;
+023    EditWord char(30) ;
+024    DateTimeFormat char(4) ;
+025    AllowNull char(1) ;
+026    Alias char(30) ;
+027    Default char(30) ;
+028    Variable char(1) ;
+029  end-ds ;
+Line 8 has a DIM, dimension, keyword, thereby, defining this as a data 
+structure array. I have chosen for it to have 1,000 elements as that is 
+larger than the file I work with that has the most fields. If you have a 
+file with more than 1,000 you will need to adjust this number accordingly.
+
+Next I have defined another data structure array for the information 
+about for the file's keys.
+
+030  dcl-ds Keys qualified dim(100) ;
+031    Unique char(1) ;
+032    Seq packed(3) ;
+033    Field char(10) ;
+034    SortOrder char(1) ;
+035  end-ds ;
+
+036  dcl-s Elements packed(5) ;
+037  dcl-s RowsForKeys like(Elements) ;
+038  dcl-s RowsForFields like(Elements) ;
+Lines 30 – 35: This is the data structure I will be using to retrieve the 
+key information from the file @KEYS. I have given this data structure 
+array 100 elements as I have not encountered a file with that many key fields. If you have then you need to adjust this number.
+
+Line 36: I will be using this in the SQL statements to fetch the data 
+from the files.
+
+Line 37: This variable will contain the number of records I retrieve 
+from the @KEYS file.
+
+Line 38: This variable does the same for the @DSPFFD file.
+
+The last data structure represents the DDS lines for the source file.
+
+039  dcl-ds Src qualified ;
+040    Spec char(1) pos(6) ;
+041    Comment char(72) pos(7) ;
+042    NameType char(1) pos(17) ;
+043    Name char(10) pos(19) ;
+044    Ref char(1) pos(29) ;
+045    Length char(5) pos(30) ;
+046    DataType char(1) pos(35) ;
+047    DecPos char(2) pos(36) ;
+048    Use char(1) pos(38) ;
+049    Functions char(36) pos(45) ;
+050  end-ds ;
+This is the equivalent of this:
+
+
+ FMT PF .....A..........T.Name++++++RLen++TDpB......Functions+++++++++++++++++++++++++++ 
+0004.00      A            FALPHA        10A         TEXT('ALPHANUMERIC THAT KEEPS GOING-
+
+
+Prompt type . . .   PF      Sequence number . . .  0004.00
+
+Name                                     Data      Decimal
+Type       Name        Ref     Length    Type     Positions    Use
+         FALPHA                 10      A                      
+                          Functions
+                          TEXT('ALPHANUMERIC THAT KEEPS GOING-
+The next part are the remaining definitions and the "main line" of this 
+program.
+
+051  dcl-s OutputMember char(10) ;
+052  dcl-s LineSeq zoned(6:2) inz ;
+053  dcl-s Work char(108) ;
+054  dcl-s Finished ind ;
+
+055  GetData() ;
+056  CreateSource() ;
+
+057  *inlr = *on ;
+The first procedure gets the data from the various files using SQL. I have 
+found that using a multiple row FETCH my program runs faster than using 
+RPG READ operations, that just get one record at a time.
+
+058  dcl-proc GetData ;
+059    exec sql SELECT RFFILE,RFNAME,RFFTXT
+                  INTO :Format
+                  FROM QTEMP.@RCDFMT ;
+
+060    Elements = %elem(Keys) ;
+061    exec sql DECLARE C0 CURSOR FOR
+                 SELECT APUNIQ,APKEYN,APKEYF,APKSEQ
+                   FROM QTEMP.@KEYS
+                  ORDER BY APKEYN
+                    FOR READ ONLY  ;
+062    exec sql OPEN C0 ;
+063    exec sql FETCH NEXT FROM C0 FOR :Elements ROWS
+                 INTO :Keys ;
+064    exec sql GET DIAGNOSTICS :RowsForKeys = ROW_COUNT ;
+065    exec sql CLOSE C0 ;
+
+066    Elements = %elem(Fields) ;
+067    exec sql DECLARE C1 CURSOR FOR
+                 SELECT WHFLDI,WHFLDB,WHFLDD,WHFLDT,WHFLDP,
+                        WHFTXT,WHRFIL,WHRLIB,WHRFMT,WHRFLD,
+                        WHCHD1,WHCHD2,WHCHD3,WHECDE,WHEWRD,
+                        WHFMT,WHNULL,WHALIS,WHDFT,WHVARL
+                   FROM QTEMP.@DSPFFD
+                    FOR READ ONLY  ;
+068    exec sql OPEN C1 ;
+069    exec sql FETCH NEXT FROM C1 FOR :Elements ROWS
+                 INTO :Fields ;
+070    exec sql GET DIAGNOSTICS :RowsForFields = ROW_COUNT ;
+071    exec sql CLOSE C1 ;
+072  end-proc ;
+Line 59: This SQL statement gets the information I need from the @RCDFMT 
+file. As this is a physical file I only need to retrieve the first and 
+only record as a physical file can only have one record format. The 
+information is placed into the Format data structure, defined in lines 
+3 – 7.
+
+Lines 60 – 65: This code gets the data for all the key fields and places 
+it in the Keys data structure array, defined lines 30 – 35. As I mentioned 
+before I am going to be using a multiple row fetch
+
+to get all the records of data I need from the @KEYS file in one FETCH. 
+On line 60 I move the value of the number of elements in the Keys data 
+structure array into the variable Elements, I will use this in the FETCH 
+statement rather than "hard code" a value. By doing this if I change the 
+number of elements in the array I don't have to change any other lines of 
+code. On line 64 I retrieve the number of rows/record I fetched from the 
+@KEYS file into the variable RowsForKeys, I will be using this later in a 
+FOR loop.
+Line 66 - 71: I am doing a similar multiple row fetch go get the data from 
+the @DSPFFD file into the data structure array Fields. I am capturing 
+the number of rows/records fetched into the RowsForFields variable on 
+line 70.
+
+I now have all the data I need in the three data structures subfields. 
+I no longer need the files I fetched the data from in this procedure, and 
+I could delete them here with a DROP TABLE SQL statement if I so desired.
+
+The next subprocedure, CreateSource, is so long I am only going to give 
+a piece of it at a time. So let's start with the first snippet.
+
+073  dcl-proc CreateSource ;
+074    dcl-c Notice1 '* DISCLAIMER' ;
+075    dcl-c Notice2 '* This source was retrieved by a program.' ;
+076    dcl-c Notice3 '* Validate the code below using DSPFD & DSPFFD' ;
+077    dcl-c Notice4 ' with the original file.' ;
+
+078    dcl-s i packed(8) ;
+
+079    OutputMember = Format.File ;
+
+080    Src.Comment = Notice1 ;
+081    WriteRecord() ;
+
+082    Src.Comment = Notice2 ;
+083    WriteRecord() ;
+
+084    Src.Comment = Notice3 + Notice4 ;
+085    WriteRecord() ;
+
+086    if (Keys(1).Unique = 'Y') ;
+087      Src.Functions = 'UNIQUE' ;
+088      WriteRecord() ;
+089    endif ;
+
+090    Src.NameType = 'R' ;
+091    Src.Name = Format.Name ;
+092    if (Format.Text <> ' ') ;
+093      Src.Functions = 'TEXT(''' + %trimr(%subst(Format.Text:1:28)) +
+                           ''')' ;
+094    endif ;
+095    WriteRecord() ;
+Lines 74 – 77: These are constants that I will be using as comments in my 
+source members. What I like about totally free RPG is the increase in the 
+range of columns I can enter code. Before totally free my code had to be 
+between the 8th and 80th columns. With totally free I can go from the 
+first column to the last column in the source member. I would have 
+combined the constants Notice3 and Notice4 into one, but for the sake 
+of showing it here I have broken it into two.
+
+Line 78: What I like about subprocedures is that I can have "local" 
+variables which can only be used in this subprocedure. I like this as it 
+self-documenting that the variable i will only be used in this 
+subprocedure.
+
+Line 79: The retrieve source member will have the same name as the 
+physical, I place it in the variable so that it can be used to open the 
+right member in the source file. I get the file name from the Format data 
+structure.
+
+Lines 80 – 85: I am writing my constants as comments at the "top" of the 
+source member. I will describe the subprocedure WriteRecord later.
+
+Lines 86 – 89: If this file has a unique key then I need to write the 
+UNIQUE keyword to the source file before the record format name, as it is 
+a "file level" keyword.
+
+Lines 90 – 95: I need to define the record format. I get its name and if 
+there is accompanying text from the Format data structure.
+
+The next part of the subprocedure uses a FOR loop to process all the data 
+in the Fields data structure array. The code within in the FOR loop is 
+too long to show in one snippet, therefore, I am going to show it in 
+tree. The first snippet is the code for defining the field.
+
+096    for i = 1 to RowsForFields ;
+097      Src.Name = Fields(i).Name ;
+098      if (Fields(i).RefFile <> ' ') ;
+099        Src.Ref = 'R' ;
+100        Work = 'REFFLD(' + %trimr(Fields(i).RefFormat) + '/' +
+                  %trimr(Fields(i).RefField) + ' ' +
+                  %trimr(Fields(i).RefLib) + '/' +
+                  %trimr(Fields(i).RefFile) +')' ;
+101        ChopItUp() ;
+102      else ;
+103        if (Fields(i).NbrOfDigits > 0) ;
+104          evalr Src.Length = %char(Fields(i).NbrOfDigits) ;
+105          evalr Src.DecPos = %char(Fields(i).DecPos) ;
+106        elseif ((Fields(i).Type <> 'L') and
+                   (Fields(i).Type <> 'T') and
+                   (Fields(i).Type <> 'Z')) ;
+107          if (Fields(i).Variable = 'Y') ;
+108            evalr Src.Length = %char(Fields(i).BytesLength - 2) ;
+109          else ;
+110            evalr Src.Length = %char(Fields(i).BytesLength) ;
+111          endif ;
+112        endif ;
+113        Src.DataType = Fields(i).Type ;
+114      endif ;
+
+115      if (Src.Functions <> ' ') ;
+116        WriteRecord() ;
+117      endif ;
+
+118      if (Fields(i).Text <> ' ' ) ;
+119        Work = 'TEXT(''' + %trimr(Fields(i).Text) + ''')' ;
+120        ChopItUp() ;
+121        WriteRecord() ;
+122      endif ;
+Line 96: The FOR loop will be executed until the "counter" value equals 
+the value in the variable RowsForFields, which is the number records 
+fetched from the @DSPFFD file, ss line 70.
+
+Line 97: The name of the field is moved in the relevant subfield of the 
+rc data structure.
+
+Lines 98 – 101: If the field was defined using the REFFLD keyword then I 
+need to put "R" in the Reference subfield, line 99. I put together all 
+the relevant subfields from Fields to create the REFFLD string in the 
+variable Work, line 100. As the string within Work could be greater than 
+36 characters. The length of the functions part of the DDS specification, 
+I need to "chop it up" into appropriate lengths before I move it to the 
+Functions subfield. As I will be "chopping up" more than this string I 
+created a subprocedure to do it, ChopItUp.
+
+Line 102: The code that follows is where the field was defined within the 
+file.
+
+Lines 103 – 105: If the field is numeric it could be packed or signed. 
+If the field is packed the number of bytes used by the field is less than 
+its length. Fortunately the @DSPFFD file, and the Fields data structure 
+array, has two fields to assist me with this issue. The first subfield is 
+BytesLength which is the length of the field in bytes, which in the case 
+of the example field FPACKED is two. The second is NbrOfDigits the number 
+of digits in a numeric field only. Therefore, for numeric fields I must 
+use the NbrOfDigits for its length. On lines 104 and 105 I am using the 
+%CHAR built in function to convert the numbers to alphanumeric, and then 
+using the EVALR operation code to right justify the character value. I 
+do this as I prefer to see " 3" rather than "00003".
+
+Lines 106: If the field is a date (L), time (T), or a timestamp (Z) I do 
+not have to give its length. Therefore, if it not one of those I do…
+
+Lines 107 and 108: If the field was defined as variable the operating 
+adds two bytes to the start of it, which contain its length. Therefore, 
+if the field is of variable length I need to subtract two from it to give 
+the defined length.
+
+Line 110: If is not variable then the field's length is same as the value 
+in the subfield BytesLength.
+
+Line 113: Move the data type into the right place in the source data 
+structure.
+
+Lines 118 – 122: If there is text for the field I need to make the TEXT 
+string, which could be longer than 36 characters so I need to send it to 
+ChopItUp, and then write to the output file.
+
+The next part of the FOR loop I am going to describe is the way I have 
+handled the column headings.
+
+123      if ((Fields(i).ColHdg1 <> ' ')
+            or (Fields(i).ColHdg2 <> ' ')
+            or (Fields(i).ColHdg3 <> ' ')) ;
+124        Work = 'COLHDG(''' ;
+
+125        if (Fields(i).ColHdg1 = ' ') ;
+126          Work = %trimr(Work) + ''' ''' ;
+127        else ;
+128          Work = %trimr(Work) + %trimr(Fields(i).ColHdg1) + ''' ' ;
+129        endif ;
+
+130        if ((Fields(i).ColHdg2 = ' ') and (Fields(i).ColHdg3 <> ' ')) ;
+131           Work = %trimr(Work) + ' '' ''' ;
+132        elseif (Fields(i).ColHdg2 <> ' ') ;
+133           Work = %trimr(Work) + ' ''' + %trimr(Fields(i).ColHdg2) 
+                       + ''' ' ;
+134        endif ;
+
+135        if (Fields(i).ColHdg3 <> ' ') ;
+136          Work = %trimr(Work) + ' ''' + %trimr(Fields(i).ColHdg3) 
+                      + ''' ' ;
+137        endif ;
+
+138        Work = %trimr(Work) + ')' ;
+139        ChopItUp() ;
+140        WriteRecord() ;
+141      endif ;
+Line 123: The column headings are in three different subfields. If one of 
+them is not blank then I have column headings.
+
+Lines 125 and 126: If the first column heading is blank I need to write a 
+blank heading as either the second of third is used. The three apostrophes ( ''' ) are used to add one apostrophe to the string.
+
+Lines 130 – 132: If there is no value in column heading 2, but there is 
+in 3, I need to write a blank column heading.
+
+Lines 138 – 140: When the column headings have been moved to Work I call 
+ChopItUp, and then write the record to the output file.
+
+The last section of this FOR creates all the other commonly used DDS 
+keywords I use.
+
+142      if (%subst(Fields(i).EditCode:1:1) <> ' ') ;
+143        Src.Functions = 'EDTCDE(' + %trimr(Fields(i).EditCode) + ')' ;
+144        WriteRecord() ;
+145      elseif (Fields(i).EditWord <> ' ') ;
+146        Src.Functions = 'EDTWRD(' + %trimr(Fields(i).EditWord) + ')' ;
+147        WriteRecord() ;
+148      endif ;
+
+149      if (Fields(i).DateTimeFormat <> ' ') ;
+150        if (Fields(i).Type = 'L') ;
+151           Src.Functions = 'DATFMT(' + %trimr(Fields(i).DateTimeFormat) +
+                            ')' ;
+152           WriteRecord() ;
+153        elseif (Fields(i).Type = 'T') ;
+154           Src.Functions = 'TIMFMT(' + %trimr(Fields(i).DateTimeFormat) +
+                            ')' ;
+155           WriteRecord() ;
+156        endif ;
+157      endif ;
+
+158      if (Fields(i).Alias <> ' ') ;
+159        Src.Functions = 'ALIAS(' + %trimr(Fields(i).Alias) + ')' ;
+160        WriteRecord() ;
+161      endif ;
+
+162      if (Fields(i).Default <> ' ') ;
+163        Src.Functions = 'DFT(' + %trimr(Fields(i).Default) + ')' ;
+164        WriteRecord() ;
+165      endif ;
+
+166      if (Fields(i).AllowNull = 'Y') ;
+167        Src.Functions = 'ALWNULL' ;
+168        WriteRecord() ;
+169      endif ;
+
+170      if (Fields(i).Variable = 'Y') ;
+171        Src.Functions = 'VARLEN' ;
+172        WriteRecord() ;
+173      endif ;
+174    endfor ;
+Line 142: I have found that when an edit code is not used the second 
+position of the edit code subfield, EditCode, contains a hexadecimal 
+value, therefore, it is not blank. Thus I only check the first position 
+of the edit code subfield to see if an edit code is used.
+
+Line 145: You cannot have an edit word if an edit code is used, so if 
+there is no edit code I check for an edit word.
+
+Line 149: The same subfield is used for the date or time format, which 
+make sense as a field can only be one or the other. Therefore, the logic 
+to create the relevant keyword has to be conditioned by the the field 
+data type.
+
+Lines 158 – 161: There is a subfield for the alias name for a field. If 
+it is not blank I need to make an ALIAS source record.
+
+Lines 162 – 165: If there is a value in the field default subfield I need 
+to make a DFT source record.
+
+Lines 166 – 169: Does the field allow null values?
+
+Lines 170 – 173: Is the field variable in length?
+
+Line 185: And that is the end of this FOR loop, that started on line 96.
+
+Onto the next piece of code that is another FOR loop, to write the key 
+information to the output file. Do not worry this loop is only eight lines.
+
+175    for i = 1 to RowsForKeys ;
+176      Src.NameType = 'K' ;
+177      Src.Name = Keys(i).Field ;
+
+178      if (Keys(i).SortOrder = 'D') ;
+179        Src.Functions = 'DESC' ;
+180      endif ;
+
+181      WriteRecord() ;
+182    endfor ;
+Line 175: As this loop is for the key fields it will be executed the same 
+number of times as the number of rows/records that were fetched from the 
+file @KEYS.
+
+Lines 178 – 180: These are not relevant to a physical file, I add these 
+lines for "future development" reasons.
+
+There are only three lines left in this procedure.
+
+183    Finished = *on ;
+184    WriteRecord() ;
+185  end-proc ;
+Lines 183 – 184: These are used to close the source member. More on that 
+in the description of WriteRecord.
+
+The rest of the subprocedures are a lot smaller than that one. Next 
+subprocedure is the one to write to the output source file.
+
+186  dcl-proc WriteRecord ;
+187    dcl-f OUTSRC extfile('QTEMP/OUTSRC')
+                      extmbr(OutputMember)
+                      usage(*output)
+                      rename(OUTSRC:OUTPUT)
+                      static
+                      usropn ;
+
+188    dcl-ds SrcRcd likerec(OUTPUT:*output) ;
+
+189    if (Finished) ;
+190      close OUTSRC ;
+191      return ;
+192    endif ;
+
+193    if not(%open(OUTSRC)) ;
+194      open OUTSRC ;
+195    endif ;
+
+196    SrcRcd.SrcSeq = LineSeq + 0.01 ;
+197    Src.Spec = 'A' ;
+198    SrcRcd.SrcDta = Src ;
+
+199    write OUTPUT SrcRcd ;
+
+200    Src = ' ' ;
+201    LineSeq = SrcRcd.SrcSeq ;
+202  end-proc ;
+Line 187: This is the definition for the file, and member, that the data 
+is written to. I have used the EXTFILE keyword to give the file's location 
+to make sure I write to the correct file. As the member will be different 
+for every file I use this program with, I need to use the EXTMBR to make 
+sure I only open the member I want, not the first one which is the default 
+if EXTMBR is not used. The variable OutputMember contains the value from 
+the subfield in the data structure Formats that contains the file name, 
+line 79. The record format name of a source file is always the same as 
+the name of the file, which means I need a RENAME to rename the record 
+format's name to something different. STATIC means that the file will not 
+be closed when I exit this subprocedure. It will remain open until I 
+explicitly close it. I have to make the file user open, USROPN, to make 
+sure I right the member I want to.
+
+Line 188: As the file is defined in a subprocedure I need to use a data 
+structure to output to the file. All the fields in the file are 
+automatically defined in this data structure, and prefixed with the data 
+structures name. I am also using this data structure for output only.
+
+Lines 189 – 192: The last time this subprocedure is called the indicator 
+Finished will be on, which means I will close the output file.
+
+Lines 193 – 195: The first time I call this subprocedure the file will be 
+closed, so I need to open it. Every other time I call this subprocedure 
+the file is already open, therefore, this code will not be executed again.
+
+Line 196: I have to increment the line number as each source record needs 
+its own unique number.
+
+Line 197: The DDS source line should have an "A" in the sixth column.
+
+Line 198: I move all of my Src data structure into the source data field.
+
+Line 199: When I write to the output file I need to use the data structure 
+I defined on line 188.
+
+The last subprocedure is the fancifully named ChopItUp. Its purpose is to 
+chop the string in the variable Work into parts that can be moved to the 
+Fucntions subfield, then written to the output file.
+
+203  dcl-proc ChopItUp ;
+204    dcl-ds Parts qualified ;
+205      One char(36) ;
+206      Two char(36) ;
+207      Three char(36) ;
+208    end-ds ;
+
+209    Parts = Work ;
+
+210    if ((Parts.Two = ' ') and (Parts.Three = ' ')) ;
+211      Src.Functions = Parts.One ;
+212      return ;
+213    endif ;
+
+214    if (Parts.Two <> ' ') ;
+215      %subst(Parts:37) = %subst(Parts:36) ;
+216      %subst(Parts:36:1) = '-' ;
+217      Src.Functions = Parts.One ;
+218      WriteRecord() ;
+219      Src.Functions = Parts.Two ;
+220    endif ;
+
+221    if (Parts.Three <> ' ') ;
+222      %subst(Parts:73) = %subst(Parts:72) ;
+223      %subst(Parts:72:1) = '-' ;
+224      Src.Functions = Parts.Two ;
+225      WriteRecord() ;
+226      Src.Functions = Parts.Three ;
+227    endif ;
+228  end-proc ;
+Lines 210 – 213: If the string in Work is big enough to fit in just the 
+first part then I can exit the subprocedure. The source line will be 
+written by the WriteRecord which always the call to this subprocedure.
+
+Lines 214 – 220: If there is something in the subfield Part2 I need to 
+add a hyphen ( - ) to the end of Part1 and move the string up one place.
+
+Lines 221 – 227: The same is true is there is something in Part3.
+
+We all managed to go through this program of 228 lines. I hope you are not 
+too confused. If you have any questions feel free to ask them in the 
+Comments section below.
+
+The result from this program is a source member in OUTSRC which looks 
+pretty similar to the TESTFILE shown at the start of this post.
+
+
+01  A* DISCLAIMER
+02  A* This source was retrieved by a program.
+03  A* Validate the code below using DSPFD & DSPFFD with the original file.
+04  A                                      UNIQUE
+05  A          R TESTFILER                 TEXT('TESTFILE FILE')
+06  A            FALPHA        10A         TEXT('ALPHANUMERIC THAT KEEPS GOING-
+07  A                                       ON AND ON FOREVER')
+08  A                                      COLHDG('FIRST' 'FIELD' 'HEADING')
+09  A                                      ALIAS(FIRST_FIELD_ALPHANUMERIC)
+10  A            FPACKED        3P 0       TEXT('PACKED NUMERIC')
+11  A                                      COLHDG('SECOND' 'FIELD')
+12  A                                      EDTCDE(J)
+13  A                                      ALIAS(SECOND_FIELD_PACKED_NUMBER)
+14  A            FSIGNED        7S 2       TEXT('SIGNED NUMERIC')
+15  A                                      COLHDG('THIRD' 'FIELD')
+16  A                                      EDTWRD('0  -   .  ')
+17  A                                      ALIAS(THIRD_FIELD_SIGNED_NUMBER)
+18  A            FDATE           L         TEXT('DATE')
+19  A                                      COLHDG('FDATE')
+20  A                                      DATFMT(*USA)
+21  A                                      ALIAS(FOURTH_FIELD_DATE)
+22  A            FTIME           T         TEXT('TIME')
+23  A                                      COLHDG('FTIME')
+24  A                                      TIMFMT(*HMS)
+25  A                                      ALIAS(FIFTH_FIELD_TIME)
+26  A            FREF1     R               REFFLD(MFGMSTR/ORDNBR PRODLIB/MFGMS-
+27  A                                      T)
+28  A                                      TEXT('Order number')
+29  A                                      COLHDG('Order' 'Number')
+30  A                                      ALIAS(SIXTH_FIELD_REFFLD)
+31  A                                      DFT('A')
+32  A            FREF2     R               REFFLD(WHSMSTR/ITMNBR PRODLIB/WHSMS-
+33  A                                      T)
+34  A                                      TEXT('Item number')
+35  A                                      COLHDG('Item number')
+36  A                                      ALIAS(SEVENTH_FIELD_REFFLD)
+37  A            FLONG       1000A         TEXT('VARIABLE LENGTH FIELD')
+38  A                                      COLHDG('VARIABLE' 'LENGTH' 'FIELD')
+39  A                                      ALIAS(EIGHTH_FIELD_VARLEN)
+40  A                                      ALWNULL
+41  A                                      VARLEN
+42  A          K FALPHA
+43  A          K FSIGNED
+I placed the disclaimer at the top of the retrieved source as I want 
+anyone who uses this program to be aware there are some scenarios that 
+this program will not handle. The two I can think of now are (I am sure 
+there others too):
+
+    A..........T.Name++++++RLen++TDpB......Functions++++++++++++
+01  A            UNITCOST       7P 2
+02  A            FPACKED2       5P 0
+
+
+03  A            EXTENDAMT R   +2          REFFLD(UNITCOST *SRC)
+04  A            FSIGNED2  R     S         REFFLD(FPACKED2 *SRC)
+
+Display File Field Description
+
+           Data        Field
+Field      Type       Length
+EXTENDAMT  PACKED       9  2
+FSIGNED2   ZONED        5  0
+The field EXTENDAMT will be two positions longer than the field it is 
+based upon.
+
+FISGNED2 is converted from packed numeric to signed/zoned.
+
+If you use this it is up to you to compare the retrieved source to match 
+what you see when using DSPFD and DSPFFD with the original file, and make 
+any changes necessary to the retrieved source.
+
+RPG program in full
+001  **free
+002  ctl-opt option(*nodebugio:*srcstmt) dftactgrp(*no) ;
+
+003  dcl-ds Format qualified ;
+004    File char(10) ;
+005    Name char(10) ;
+006    Text char(50) ;
+007  end-ds ;
+
+008  dcl-ds Fields qualified dim(1000) ;
+009    Name char(10) ;
+010    BytesLength packed(5) ;
+011    NbrOfDigits packed(2) ;
+012    Type char(1) ;
+013    DecPos packed(2) ;
+014    Text char(50) ;
+015    RefFile char(10) ;
+016    RefLib char(10) ;
+017    RefFormat char(10) ;
+018    RefField char(10) ;
+019    ColHdg1 char(20) ;
+020    ColHdg2 char(20) ;
+021    ColHdg3 char(20) ;
+022    EditCode char(2) ;
+023    EditWord char(30) ;
+024    DateTimeFormat char(4) ;
+025    AllowNull char(1) ;
+026    Alias char(30) ;
+027    Default char(30) ;
+028    Variable char(1) ;
+029  end-ds ;
+
+030  dcl-ds Keys qualified dim(100) ;
+031    Unique char(1) ;
+032    Seq packed(3) ;
+033    Field char(10) ;
+034    SortOrder char(1) ;
+035  end-ds ;
+
+036  dcl-s Elements packed(5) ;
+037  dcl-s RowsForKeys like(Elements) ;
+038  dcl-s RowsForFields like(Elements) ;
+
+039  dcl-ds Src qualified ;
+040    Spec char(1) pos(6) ;
+041    Comment char(72) pos(7) ;
+042    NameType char(1) pos(17) ;
+043    Name char(10) pos(19) ;
+044    Ref char(1) pos(29) ;
+045    Length char(5) pos(30) ;
+046    DataType char(1) pos(35) ;
+047    DecPos char(2) pos(36) ;
+048    Use char(1) pos(38) ;
+049    Functions char(36) pos(45) ;
+050  end-ds ;
+
+051  dcl-s OutputMember char(10) ;
+052  dcl-s LineSeq zoned(6:2) inz ;
+053  dcl-s Work char(108) ;
+054  dcl-s Finished ind ;
+
+055  GetData() ;
+056  CreateSource() ;
+
+057  *inlr = *on ;
+
+058  dcl-proc GetData ;
+059    exec sql SELECT RFFILE,RFNAME,RFFTXT
+                  INTO :Format
+                  FROM QTEMP.@RCDFMT ;
+
+060    Elements = %elem(Keys) ;
+061    exec sql DECLARE C0 CURSOR FOR
+                 SELECT APUNIQ,APKEYN,APKEYF,APKSEQ
+                   FROM QTEMP.@KEYS
+                  ORDER BY APKEYN
+                    FOR READ ONLY  ;
+062    exec sql OPEN C0 ;
+063    exec sql FETCH NEXT FROM C0 FOR :Elements ROWS
+                 INTO :Keys ;
+064    exec sql GET DIAGNOSTICS :RowsForKeys = ROW_COUNT ;
+065    exec sql CLOSE C0 ;
+
+066    Elements = %elem(Fields) ;
+067    exec sql DECLARE C1 CURSOR FOR
+                 SELECT WHFLDI,WHFLDB,WHFLDD,WHFLDT,WHFLDP,
+                        WHFTXT,WHRFIL,WHRLIB,WHRFMT,WHRFLD,
+                        WHCHD1,WHCHD2,WHCHD3,WHECDE,WHEWRD,
+                        WHFMT,WHNULL,WHALIS,WHDFT,WHVARL
+                   FROM QTEMP.@DSPFFD
+                    FOR READ ONLY  ;
+068    exec sql OPEN C1 ;
+069    exec sql FETCH NEXT FROM C1 FOR :Elements ROWS
+                 INTO :Fields ;
+070    exec sql GET DIAGNOSTICS :RowsForFields = ROW_COUNT ;
+071    exec sql CLOSE C1 ;
+072  end-proc ;
+
+073  dcl-proc CreateSource ;
+074    dcl-c Notice1 '* DISCLAIMER' ;
+075    dcl-c Notice2 '* This source was retrieved by a program.' ;
+076    dcl-c Notice3 '* Validate the code below using DSPFD & DSPFFD' ;
+077    dcl-c Notice4 ' with the original file.' ;
+
+078    dcl-s i packed(8) ;
+
+079    OutputMember = Format.File ;
+
+080    Src.Comment = Notice1 ;
+081    WriteRecord() ;
+
+082    Src.Comment = Notice2 ;
+083    WriteRecord() ;
+
+084    Src.Comment = Notice3 + Notice4 ;
+085    WriteRecord() ;
+
+086    if (Keys(1).Unique = 'Y') ;
+087      Src.Functions = 'UNIQUE' ;
+088      WriteRecord() ;
+089    endif ;
+
+090    Src.NameType = 'R' ;
+091    Src.Name = Format.Name ;
+092    if (Format.Text <> ' ') ;
+093      Src.Functions = 'TEXT(''' + %trimr(%subst(Format.Text:1:28)) +
+                           ''')' ;
+094    endif ;
+095    WriteRecord() ;
+
+096    for i = 1 to RowsForFields ;
+097      Src.Name = Fields(i).Name ;
+098      if (Fields(i).RefFile <> ' ') ;
+099        Src.Ref = 'R' ;
+100        Work = 'REFFLD(' + %trimr(Fields(i).RefFormat) + '/' +
+                  %trimr(Fields(i).RefField) + ' ' +
+                  %trimr(Fields(i).RefLib) + '/' +
+                  %trimr(Fields(i).RefFile) +')' ;
+101        ChopItUp() ;
+102      else ;
+103        if (Fields(i).NbrOfDigits > 0) ;
+104          evalr Src.Length = %char(Fields(i).NbrOfDigits) ;
+105          evalr Src.DecPos = %char(Fields(i).DecPos) ;
+106        elseif ((Fields(i).Type <> 'L') and
+                   (Fields(i).Type <> 'T') and
+                   (Fields(i).Type <> 'Z')) ;
+107          if (Fields(i).Variable = 'Y') ;
+108            evalr Src.Length = %char(Fields(i).BytesLength - 2) ;
+109          else ;
+110            evalr Src.Length = %char(Fields(i).BytesLength) ;
+111          endif ;
+112        endif ;
+113        Src.DataType = Fields(i).Type ;
+114      endif ;
+
+115      if (Src.Functions <> ' ') ;
+116        WriteRecord() ;
+117      endif ;
+
+118      if (Fields(i).Text <> ' ' ) ;
+119        Work = 'TEXT(''' + %trimr(Fields(i).Text) + ''')' ;
+120        ChopItUp() ;
+121        WriteRecord() ;
+122      endif ;
+
+123      if ((Fields(i).ColHdg1 <> ' ')
+            or (Fields(i).ColHdg2 <> ' ')
+            or (Fields(i).ColHdg3 <> ' ')) ;
+124        Work = 'COLHDG(''' ;
+
+125        if (Fields(i).ColHdg1 = ' ') ;
+126          Work = %trimr(Work) + ''' ''' ;
+127        else ;
+128          Work = %trimr(Work) + %trimr(Fields(i).ColHdg1) + ''' ' ;
+129        endif ;
+
+130        if ((Fields(i).ColHdg2 = ' ') and (Fields(i).ColHdg3 <> ' ')) ;
+131           Work = %trimr(Work) + ' '' ''' ;
+132        elseif (Fields(i).ColHdg2 <> ' ') ;
+133           Work = %trimr(Work) + ' ''' + %trimr(Fields(i).ColHdg2) 
+                       + ''' ' ;
+134        endif ;
+
+135        if (Fields(i).ColHdg3 <> ' ') ;
+136          Work = %trimr(Work) + ' ''' + %trimr(Fields(i).ColHdg3) 
+                      + ''' ' ;
+137        endif ;
+
+138        Work = %trimr(Work) + ')' ;
+139        ChopItUp() ;
+140        WriteRecord() ;
+141      endif ;
+
+142      if (%subst(Fields(i).EditCode:1:1) <> ' ') ;
+143        Src.Functions = 'EDTCDE(' + %trimr(Fields(i).EditCode) + ')' ;
+144        WriteRecord() ;
+145      elseif (Fields(i).EditWord <> ' ') ;
+146        Src.Functions = 'EDTWRD(' + %trimr(Fields(i).EditWord) + ')' ;
+147        WriteRecord() ;
+148      endif ;
+
+149      if (Fields(i).DateTimeFormat <> ' ') ;
+150        if (Fields(i).Type = 'L') ;
+151           Src.Functions = 'DATFMT(' + %trimr(Fields(i).DateTimeFormat) +
+                            ')' ;
+152           WriteRecord() ;
+153        elseif (Fields(i).Type = 'T') ;
+154           Src.Functions = 'TIMFMT(' + %trimr(Fields(i).DateTimeFormat) +
+                            ')' ;
+155           WriteRecord() ;
+156        endif ;
+157      endif ;
+
+158      if (Fields(i).Alias <> ' ') ;
+159        Src.Functions = 'ALIAS(' + %trimr(Fields(i).Alias) + ')' ;
+160        WriteRecord() ;
+161      endif ;
+
+162      if (Fields(i).Default <> ' ') ;
+163        Src.Functions = 'DFT(' + %trimr(Fields(i).Default) + ')' ;
+164        WriteRecord() ;
+165      endif ;
+
+166      if (Fields(i).AllowNull = 'Y') ;
+167        Src.Functions = 'ALWNULL' ;
+168        WriteRecord() ;
+169      endif ;
+
+170      if (Fields(i).Variable = 'Y') ;
+171        Src.Functions = 'VARLEN' ;
+172        WriteRecord() ;
+173      endif ;
+174    endfor ;
+
+175    for i = 1 to RowsForKeys ;
+176      Src.NameType = 'K' ;
+177      Src.Name = Keys(i).Field ;
+
+178      if (Keys(i).SortOrder = 'D') ;
+179        Src.Functions = 'DESC' ;
+180      endif ;
+
+181      WriteRecord() ;
+182    endfor ;
+
+183    Finished = *on ;
+184    WriteRecord() ;
+185  end-proc ;
+
+186  dcl-proc WriteRecord ;
+187    dcl-f OUTSRC extfile('QTEMP/OUTSRC')
+                      extmbr(OutputMember)
+                      usage(*output)
+                      rename(OUTSRC:OUTPUT)
+                      static
+                      usropn ;
+
+188    dcl-ds SrcRcd likerec(OUTPUT:*output) ;
+
+189    if (Finished) ; // Performed at end
+190      close OUTSRC ;
+191      return ;
+192    endif ;
+
+193    if not(%open(OUTSRC)) ;
+194      open OUTSRC ;
+195    endif ;
+
+196    SrcRcd.SrcSeq = LineSeq + 0.01 ;
+197    Src.Spec = 'A' ;
+198    SrcRcd.SrcDta = Src ;
+
+199    write OUTPUT SrcRcd ;
+
+200    Src = ' ' ;
+201    LineSeq = SrcRcd.SrcSeq ;
+202  end-proc ;
+
+203  dcl-proc ChopItUp ;
+204    dcl-ds Parts qualified ;
+205      One char(36) ;
+206      Two char(36) ;
+207      Three char(36) ;
+208    end-ds ;
+
+209    Parts = Work ;
+
+210    if ((Parts.Two = ' ') and (Parts.Three = ' ')) ;
+211      Src.Functions = Parts.One ;
+212      return ;
+213    endif ;
+
+214    if (Parts.Two <> ' ') ;
+215      %subst(Parts:37) = %subst(Parts:36) ;
+216      %subst(Parts:36:1) = '-' ;
+217      Src.Functions = Parts.One ;
+218      WriteRecord() ;
+219      Src.Functions = Parts.Two ;
+220    endif ;
+
+221    if (Parts.Three <> ' ') ;
+222      %subst(Parts:73) = %subst(Parts:72) ;
+223      %subst(Parts:72:1) = '-' ;
+224      Src.Functions = Parts.Two ;
+225      WriteRecord() ;
+226      Src.Functions = Parts.Three ;
+227    endif ;
+228  end-proc ;

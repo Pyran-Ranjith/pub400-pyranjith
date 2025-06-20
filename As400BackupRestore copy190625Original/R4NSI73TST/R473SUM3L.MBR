@@ -1,0 +1,13 @@
+     A*
+     A          R D2DGENDF                  JFILE(R473SUM3P R473SUM2P R473SUM1P)
+     A          J                           JOIN(1 2)
+     A                                      JFLD(DENFCL LFNFCL)
+     A          J                           JOIN(2 3)
+     A                                      JFLD(LFNCDE TORDNO)
+     A            TORDNO
+     A            TOONUM
+     A            DERFOU
+     A            DERBLF
+     A            DERCLC
+     A            DETQTY
+     A          K DERBLF

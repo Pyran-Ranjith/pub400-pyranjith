@@ -1,0 +1,30 @@
+     FQRPGSRC   IF   E             DISK    rename(QRPGSRC:QRPGSRCR)
+     **free
+     ctl-opt DftActGrp(*No) ActGrp(MyNamedAG)
+             DatFmt(*ISO)
+             Option(*SrcStmt: *NoDebugIo: *NoUnref);
+
+     dcl-f qrpgsrc qualified;
+
+     dcl-ds src       LikeRec(qrpgsrc.qrpgsrc);
+
+     dcl-s ix         Int(5) Inz(0);
+     dcl-s FullyFree  Ind Inz(*OFF);
+
+     dcl-c LC         'abcdefghijklmnopqrstuvwxyz';
+     dcl-c UC         'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+     for ix = 1 to 50;
+       read qrpgsrc.qrpgsrc src;
+         if %eof();
+           leave;
+         endif;
+
+         // Is this a fully free form program?
+         if ix = 1;
+           FullyFree = (%xlate(UC: LC: %trim(src.srcdta)) = '**free');
+         endif;
+
+         // Do something here
+       endfor;
+       return;

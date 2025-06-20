@@ -1,0 +1,4 @@
+     A          R BLFACCF
+     A            LFNFCL         7  0       COLHDG('Clent  ' 'inv no.')
+     A            LFNCDE         7  0       COLHDG('Order  ' 'no.    ')
+     A            LFRCLC         5  0       COLHDG('comercl' 'clntno.')

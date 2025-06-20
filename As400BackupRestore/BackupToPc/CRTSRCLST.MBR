@@ -1,0 +1,17 @@
+/* Read outfile and create souce member lit                          */
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&msg   ) TYPE(*CHAR) LEN(100)
+             RTVDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) RTNVAR(&CURLIB)
+             RTVDTAARA  DTAARA(QTEMP/GLSRCFIL *ALL) RTNVAR(&SRCFIL)
+             CLRPFM     FILE(&CURLIB/&SRCFIL) MBR(MBRLST)
+             DSPFD      FILE(&CURLIB/&SRCFIL   ) TYPE(*RCDFMT) +
+                          OUTPUT(*OUTFILE) FILEATR(*PF) +
+                          OUTFILE(QTEMP/DSPFDPF)
+             CALL       PGM(QTEMP/CRTSRCLST$)
+             CHGVAR     VAR(&MSG) VALUE('All members of the source +
+                          pf' *BCAT &SRCFIL *TCAT ' copyed to +
+                          MBRlst.txt . . .')
+
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSG) +
+                          MSGTYPE(*COMP)

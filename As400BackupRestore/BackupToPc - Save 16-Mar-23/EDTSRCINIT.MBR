@@ -1,0 +1,10 @@
+/*                                                                            */
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             RTVDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) RTNVAR(&CURLIB)
+             RTVDTAARA  DTAARA(QTEMP/GLSRCFIL *ALL) RTNVAR(&SRCFIL)
+             CRTCMD     CMD(QTEMP/EDTSRC) PGM(QTEMP/EDTSRCC) +
+                          SRCFILE(&CURLIB/&SRCFIL)
+             CRTBNDCL   PGM(QTEMP/EDTSRCC) SRCFILE(&CURLIB/&SRCFIL)
+             CRTBNDRPG  PGM(QTEMP/EDTSRCR) SRCFILE(&CURLIB/&SRCFIL) +
+                          OPTION(*NODEBUGIO) DBGVIEW(*SOURCE)

@@ -1,0 +1,5 @@
+USER0174
+user0174
+cd "/QSYS.LIB/USER01741.LIB/BackupToPc.FILE"
+lcd "C:\Users\ranjithj\Documents\As400BackupRestore\BackupToPc"
+get CPYIFSSRCF.MBR

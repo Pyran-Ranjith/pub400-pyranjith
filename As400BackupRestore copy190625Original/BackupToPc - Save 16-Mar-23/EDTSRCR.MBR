@@ -1,0 +1,222 @@
+     ò/Title Write Source Statements                                                              Ä
+     Ç**********************************************************************************Ä
+     Ç***ÇProgram name:êEDTSRCR Ä                                 ÇDate:ê2001-02-28Ç ***Ä
+     Ç**********************************************************************************Ä
+     Ç***à   Copyright -öFree RPG/i5 Tools                                          Ç***Ä
+     Ç***à      E-Mail -öUtilities@FreeRPGTools.com                                 Ç***Ä
+     Ç***à Description -öEdit Source Statements                                     Ç***Ä
+     Ç***ö                                                                          Ç***Ä
+     Ç***    Maintenance History:Ä(Most recent is listed first)                     Ç***Ä
+     Ç***ö                                                                          Ç***Ä
+     Ç***    Project  Date of      Pgmr                                              ***Ä
+     Ç***     Id.  ÇLast ChangeÇInitialsÇDescription of Changes               Ç  ***Ä
+     Ç***   xxxxxxx  2005-06-14   FRT       Initial Creation                       Ç***Ä
+     Ç***                                                                          Ç***Ä
+     Ç**********************************************************************************Ä
+     Ç***ê                             Creation Keywords                            Ç***Ä
+     Ç*** Keyword     ÄKeyword Data                                             Ä Ç***Ä
+     Ç*** *NONE        öNo special keywords are required                           Ç***Ä
+     Ç***              ö                                                           Ç***Ä
+     Ç**********************************************************************************Ä
+     Ç***ê                                 Overrides                                Ç***Ä
+     Ç*** DB-File     ÄOverride                                                 Ä Ç***Ä
+     Ç*** *NONE        öNo overrides are needed to compile this program            Ç***Ä
+     Ç***              ö                                                           Ç***Ä
+     Ç**********************************************************************************Ä
+     Ç***ê                           Indicator Usage                                Ç***Ä
+     Ç*** XX    Description                                                    Ç  ***Ä
+     Ç*** LR     öLast Record Processed Indicator                                  Ç***Ä
+     Ç***        ö                                                                 Ç***Ä
+     Ç**********************************************************************************Ä
+     Ç***ê                             Parameters                                   Ç***Ä
+     Ç***  Field     LengthÄUsageÄDescription                                Ç  ***Ä
+     Ç***ö                                                                          Ç***Ä
+     Ç**********************************************************************************Ä
+     Ç*** Files Used:ö                                                              Ç***Ä
+     Ç***ÄâUsage -àI=Input, O=Output, W=Work, R=Reference, P=PrintÄ                 Ç***Ä
+     Ç***Ä        àD=Display, U=Update, C=CommunicationÄ                            Ç***Ä
+     Ç***ö                                                                          Ç***Ä
+     Ç***UsageÇ Name      Ç Description                                        Ä Ç***Ä
+     Ç***ö  U     Source       Input File                                           Ç***Ä
+     Ç***ö                                                                          Ç***Ä
+     Ç**********************************************************************************Ä
+     ò*/Title  Control Specifications                                                              Ä
+     Hdebug(*yes)
+     Hoption(*nodebugio)
+     H*BNDDIR('ISTBDIR')
+     */Define FRT_Header
+     */COPY SRCTOOLS,ISTPRCR                                                              Ä
+     Ç***êQCMDEXC Program Parameters                                                              Ä
+     DCmdExec          PR                  ExtPgm('QCMDEXC')
+     D CommandData                         Like(Command)
+     D CommandLength                       Like(Length)
+     */Undefine FRT_Header
+
+     ò*/Title  File definition section                                                             Ä
+     Ç***êSource File                                                                             Ä
+     FSource    UF A F  112        DISK    USROPN
+      *
+     ò*/Title  Proto-Type definition section                                                       Ä
+     Ç***êProgram Proto-Type Parameters                                                           Ä
+     DParameters       PR                  ExtPgm('EDTSRCR')
+     D FileName                      10A
+     D Library                       10A
+     D Member                        10A
+     D Sequence                       6P 2
+     D SourceData                   100A
+     D Action                         1A
+
+     Ç***êProgram Input Parameters                                                               Ä
+     DParameters       PI
+     D FileName                      10A
+     D Library                       10A
+     D Member                        10A
+     D Sequence                       6P 2
+     D SourceData                   100A
+     D Action                         1A
+
+     ò*/Title  Proto-Type definition section                                                       Ä
+     */Define Prototypes
+     */COPY SRCTOOLS,ISTPRCR                                                              Ä
+     */Undefine Prototypes
+
+     ò*/Title  Data definition section                                                             Ä
+     Ç***êDefine Program Standalone Fields                                                        Ä
+     DCurrDate         S               D   INZ(*JOB)
+     DCurrTime         S               D   INZ(*SYS)
+     DCommand          S            512A                                        QCMDEXC Command
+     DLength           S             15P 5 Inz(%Size(Command))                  QCMDEXC Length
+     DError            S               N                                        Error Indicator
+     DNextSequence     S                   Like(Sequence)                       Next Sequence Number
+
+
+     Ç***êDefault Field Overlay Data Structure         Ä
+     DOverlays         DS
+     D Data                         112A
+     D  SRCSEQ                        6S 2 Overlay(Data:1)
+     D  SRCDAT                        6S 0 Overlay(Data:7)
+     D  SRCDTA                      100A   Overlay(Data:13)
+
+     Ç***êProgram Status Data Structure                                                           Ä
+     DProgramStatus   SDS
+     D Current                       10A   Overlay(ProgramStatus:1)             Current Program
+     D CurrUser                      10A   Overlay(ProgramStatus:254)           Current User
+     D WorkStn                       10A   Overlay(ProgramStatus:244)           Work Station
+
+     ISource    NS
+     I                                  1  112  Data
+
+     ê/Eject                                                                                      Ä
+     ò/Title  M A I N  L I N E                                                                    Ä
+     Ç**********************************************************************************Ä
+     Ç*****à                           M A I N  L I N E                           Ç*****Ä
+     Ç**********************************************************************************Ä
+     C*
+     C*                  Eval      FileName = 'TESTSRCF'
+     C*                  Eval      Library = 'USER01741'
+     C*                  Eval      Member =  'TESTSRCMBR'
+     C*                  Eval      SourceData = 'aaaaaaaaaa'
+     C*                  Eval      Sequence = 1
+     C*                  Eval      Action = 'A'
+     C                   Select
+
+     C                   When      Action = 'E'
+     C                   Close     Source
+     C                   Eval      *INLR = *ON
+     C                   Eval      Command = 'DLTOVR FILE(SOURCE) ' +
+     C                                       'LVL(*JOB)'
+     Ç***êCall QCMDEXC                                                                           Ä
+     C                   CallP(E)  CmdExec(Command:Length)
+
+     C                   ExSr      EndProgram
+
+     C                   When      Action = 'A'
+     C                   Eval      SRCSEQ = NextSequence
+     C                   Eval      SRCDTA = SourceData
+     C                   Eval      NextSequence = NextSequence + 1
+     C                   Except    AddSrc
+     C                   ExSr      EndProgram
+
+     C                   When      Action = 'U'
+     C     1             Setll     Source
+     C                   Read      Source
+     C                   Dow       Not %EOF
+     C                   If        SRCSEQ = Sequence
+     C                   Eval      SRCDTA = SourceData
+     C                   Except    UpdSrc
+     C                   ExSr      EndProgram
+     C                   EndIf
+     C                   Read      Source
+     C                   EndDo
+
+     C                   When      Action = 'D'
+     C     1             Setll     Source
+     C                   Read      Source
+     C                   Dow       Not %EOF
+     C                   If        SRCSEQ = Sequence
+     C                   Except    DelSrc
+     C                   ExSr      EndProgram
+     C                   EndIf
+     C                   Read      Source
+     C                   EndDo
+
+     C                   EndSl
+
+     Ç***êExit program                                                                            Ä
+     C                   ExSr      EndProgram
+     Ç**********************************************************************************Ä
+
+     ê*/Eject                                                                       Ä
+     ò*/Title  Controlled Program has Been Requested                                               Ä
+     Ç**********************************************************************************Ä
+     Ç*****à Subroutine :öEndProgram                                              Ç*****Ä
+     Ç*****à    Purpose :öControlled Program has Been Requested.                  Ç*****Ä
+     Ç**********************************************************************************Ä
+     C     EndProgram    BegSr
+
+     Ç***êExit program                                                                            Ä
+     C                   Return
+
+     C                   EndSR
+     Ç**********************************************************************************Ä
+
+     ê*/Eject                                                                       Ä
+     ò*/Title  Process all one time functions                                                      Ä
+     Ç**********************************************************************************Ä
+     Ç*****à Subroutine :ö*INZSR                                                  Ç*****Ä
+     Ç*****à    Purpose :öProcess all one time functions.                         Ç*****Ä
+     Ç**********************************************************************************Ä
+     C     *INZSR        BegSr
+
+     C                   Eval      Command =
+     C                             'OVRDBF FILE(SOURCE) TOFILE(' +
+     C                             %Trim(Library) + '/' +
+     C                             %Trim(Filename) + ') MBR(' +
+     C                             %Trim(Member) + ') SECURE(*YES) +
+     C                             OVRSCOPE(*JOB) SHARE(*YES)'
+     Ç***êCall QCMDEXC                                                                           Ä
+     C                   CallP(E)  CmdExec(Command:Length)
+
+     C                   Open      Source
+
+     C     *Hival        SetGt(E)  Source
+     C                   If        %Error
+     C                   Eval      NextSequence = 1
+     C                   Else
+     C                   ReadP     Source
+     C                   If        %Eof
+     C                   Eval      NextSequence = 1
+     C                   Else
+     C                   Eval      NextSequence = SRCSEQ + 1
+     C                   EndIf
+     C                   EndIf
+
+     C     *MDY          Move      CurrDate      SRCDAT
+
+     C                   EndSR
+     Ç**********************************************************************************Ä
+     OSource    EADD         AddSrc
+     O                       Data               112
+     OSource    E            UpdSrc
+     O                       Data               112
+     OSource    EDEL         DelSrc

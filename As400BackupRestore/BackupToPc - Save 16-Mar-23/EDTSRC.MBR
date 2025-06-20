@@ -1,0 +1,47 @@
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ÇCommand name:êEDTSRC  Ä                           ÇDate:ê2001-02-28Ç ***Ä*/
+     /*Ç***Ç         CPP:êEDTSRCC   Ä                                           Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***à Copyright -öFree RPG/i5 Tools                                      Ç***Ä*/
+     /*Ç***à    E-Mail -öUtilities@FreeRPGTools.com                             Ç***Ä*/
+     /*Ç***à   Purpose -öThe Edit Source command writes statements to a source  Ç***Ä*/
+     /*Ç***ö             member.  The entire statement must be written.         Ç***Ä*/
+     /*Ç***ö                                                                    Ç***Ä*/
+     /*Ç***    Maintenance History:Ä(Most recent is listed first)               Ç***Ä*/
+     /*Ç***ö                                                                    Ç***Ä*/
+     /*Ç***    Project  Date of      Pgmr                                        ***Ä*/
+     /*Ç***     Id.  ÇLast ChangeÇInitialsÇDescription of Changes         Ç  ***Ä*/
+     /*Ç***   xxxxxxx  2004-04-23   FRT       Initial Creation                 Ç***Ä*/
+     /*Ç***                                                                    Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ê                          Creation Keywords                         Ç***Ä*/
+     /*Ç*** Keyword     ÄKeyword Data                                       Ä Ç***Ä*/
+     /*Ç*** HLPPNLGRP    öEDTSRCH                                              Ç***Ä*/
+     /*Ç*** HLPID        öEDTSRC                                               Ç***Ä*/
+     /*Ç***              ö                                                     Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+             CMD        PROMPT('Edit Source Statements')
+             PARM       KWD(SRCFILE) TYPE(SOURCE) MIN(1) +
+                          PROMPT('Enter source file' 1)
+             PARM       KWD(SRCDATA) TYPE(*CHAR) LEN(100) MIN(1) +
+                          PROMPT('Enter source line' 2)
+             PARM       KWD(SEQUENCE) TYPE(*DEC) LEN(6 2) DFT(*NONE) +
+                          RANGE(0 9999.99) SPCVAL((*NONE 0)) +
+                          PROMPT('Enter member sequence' 3)
+             PARM       KWD(ACTION) TYPE(*CHAR) LEN(1) RSTD(*YES) +
+                          DFT(*ADD) VALUES(A U D E) SPCVAL((*ADD A) +
+                          (*UPD U) (*DLT D) (*END E)) CHOICE('*ADD, +
+                          *UPD, *DLT, *END') PROMPT('Action' 4)
+             PARM       KWD(CRTFILE) TYPE(*LGL) RSTD(*YES) DFT(*YES) +
+                          VALUES('1' '0') SPCVAL((*YES '1') (*NO '0')) +
+                          CHOICE('*YES, *NO') PROMPT('Create file' 5)
+             PARM       KWD(CRTMEMBER) TYPE(*LGL) RSTD(*YES) DFT(*YES) +
+                          VALUES('1' '0') SPCVAL((*YES '1') (*NO '0')) +
+                          CHOICE('*YES, *NO') PROMPT('Create member' 6)
+ SOURCE:     QUAL       TYPE(*NAME) LEN(10) DFT(QRPGLESRC)
+             QUAL       TYPE(*CHAR) LEN(10) DFT(*LIBL) +
+                          SPCVAL((*LIBL) (*CURLIB)) PROMPT('Source +
+                          library')
+             QUAL       TYPE(*CHAR) LEN(10) DFT(*FIRST) +
+                          SPCVAL((*FIRST)) CHOICE('Name, *FIRST') +
+                          PROMPT('Source member name')

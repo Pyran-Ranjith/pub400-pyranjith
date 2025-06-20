@@ -1,0 +1,5 @@
+PYRANJITH
+Aa#499404
+cd "/QSYS.LIB/PYRANJITH1.LIB/QDDSSRC.FILE"
+lcd "E:\Users\Public\Pub400\pub400-pyranjith\As400BackupRestore\As400BackupRestore"
+put TRANS#.MBR

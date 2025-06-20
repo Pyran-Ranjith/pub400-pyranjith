@@ -1,0 +1,6 @@
+USROPT     CLLE       DSPFD QAUOOPT to outfile                    NEW #1
+USROPT$    CLLE       Read outfile and write to souce member      NEW #2
+SRCFM2PFUO CLLE       Source file member to pf - pdm user option  New #3
+MNUMAINQQ  MNUCMD     Main menu                                   New #7
+PF2SRCFMUO CLLE       Pf to src fil mber - pdm user option        New #4
+QAUOOPT    TXT        PDM User optons                             New #5

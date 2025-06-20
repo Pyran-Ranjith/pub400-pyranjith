@@ -1,0 +1,6 @@
+RANJITHJ
+aa499404
+binary
+cd "/QSYS.LIB/RANJITHJ1.LIB"
+lcd "C:\Users\ranjithj\Documents\As400BackupRestore"
+PUt QAUOOPT.FILE

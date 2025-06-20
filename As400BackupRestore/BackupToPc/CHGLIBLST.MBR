@@ -1,0 +1,8 @@
+         /*  Change library list   */
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             RTVDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) RTNVAR(&CURLIB)
+             CHGLIBL    LIBL(QTEMP &CURLIB QGPL)
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA('Liblist +
+                          changed to QTEMP QGPL ' *CAT &CURLIB) +
+                          MSGTYPE(*COMP)
+

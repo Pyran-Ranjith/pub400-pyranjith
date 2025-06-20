@@ -1,0 +1,141 @@
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ÇProgram name:êEDTSRCC Ä                           ÇDate:ê2001-02-28Ç ***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***à Copyright -öFree RPG/i5 Tools                                      Ç***Ä*/
+     /*Ç***à    E-Mail -öUtilities@FreeRPGTools.com                             Ç***Ä*/
+     /*Ç***à   Purpose -öEdit Source Statements                                 Ç***Ä*/
+     /*Ç***ö                                                                    Ç***Ä*/
+     /*Ç***    Maintenance History:Ä(Most recent is listed first)               Ç***Ä*/
+     /*Ç***ö                                                                    Ç***Ä*/
+     /*Ç***    Project  Date of      Pgmr                                        ***Ä*/
+     /*Ç***     Id.  ÇLast ChangeÇInitialsÇDescription of Changes         Ç  ***Ä*/
+     /*Ç***   xxxxxxx  2004-01-02   FRT       Initial Creation                 Ç***Ä*/
+     /*Ç***                                                                    Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ê                             Module Usage                           Ç***Ä*/
+     /*Ç*** Module      Description                                        Ç  ***Ä*/
+     /*Ç*** *NONE        öNo Modules are used in this program                  Ç***Ä*/
+     /*Ç***              ö                                                     Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ê                          Creation Keywords                         Ç***Ä*/
+     /*Ç*** Keyword     ÄKeyword Data                                       Ä Ç***Ä*/
+     /*Ç*** *NONE        öNo Keywords used for this program                    Ç***Ä*/
+     /*Ç***              ö                                                     Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ê                     Required Programs/Commands                     Ç***Ä*/
+     /*Ç***ÄProgram NameÄDescription                                        Ä Ç***Ä*/
+     /*Ç*** GETPFA       öGet Physical File Attibutes                          Ç***Ä*/
+     /*Ç***              ö                                                     Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+     /*Ç***ê                             Parameters                             Ç***Ä*/
+     /*Ç*** Field       LengthÄUsageÄDescription                         Ç  ***Ä*/
+     /*Ç***ö                                                                    Ç***Ä*/
+     /*Ç****************************************************************************Ä*/
+             PGM        PARM(&SourceFile &SourceData &Sequence &Action &CrtFile +
+                             &CrtMember)
+             COPYRIGHT  TEXT('Copyright (c) Free RPG/i5 Tools - +
+                          http:\\www.FreeRPGTools.com')
+
+/*Ç********************************************************************************Ä*/
+/*Ç*êCustom Program Variables                                                      Ä*/
+/*Ç********************************************************************************Ä*/
+             DCL        VAR(&SourceFile) TYPE(*CHAR) LEN(30)
+             DCL        VAR(&ACTION) TYPE(*CHAR) LEN(1)
+             DCL        VAR(&Sequence) TYPE(*DEC) LEN(6 2)
+             DCL        VAR(&SourceData) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&Library) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&Filename) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&Member) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&CrtFile) TYPE(*LGL)
+             DCL        VAR(&CrtMember) TYPE(*LGL)
+             DCL        VAR(&RecordLen) TYPE(*DEC) LEN(5 0)
+/*Ç********************************************************************************Ä*/
+
+/*Ç********************************************************************************Ä*/
+/*Ç*êStandard Program Variables                                                    Ä*/
+/*Ç********************************************************************************Ä*/
+             DCL        VAR(&Jobtype) TYPE(*CHAR) LEN(1)
+             DCL        VAR(&MsgData) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&MsgId) TYPE(*CHAR) LEN(7)
+             DCL        VAR(&PgmLibrary) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&Command) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&Length) TYPE(*DEC) LEN(15 5) VALUE(256)
+             DCL        VAR(&Pgm) TYPE(*CHAR) LEN(10)
+/*Ç********************************************************************************Ä*/
+
+/*Ç********************************************************************************Ä*/
+/*Ç*êSet Program Library & Program Name                                            Ä*/
+/*Ç********************************************************************************Ä*/
+             OVRPRTF    FILE(QPPGMDMP) TOFILE(QDUMMY) SECURE(*YES) OVRSCOPE(*CALLLVL)
+             DMPCLPGM
+             MONMSG     MSGID(CPF0570) EXEC(DO)
+CheckMsg:
+               RCVMSG     MSGDTA(&MsgData) MSGID(&MsgId)
+               IF         COND(&MsgId *NE CPF0570) THEN(GOTO CMDLBL(CheckMsg))
+               CHGVAR     VAR(&Pgm) VALUE(%SST(&MsgData 1 10))
+               CHGVAR     VAR(&PgmLibrary) VALUE(%SST(&MsgData 11 10))
+               DLTOVR     FILE(QPPGMDMP) LVL(*)
+             ENDDO
+             ADDLIBLE   LIB(&PgmLibrary) POSITION(*LAST)
+             MONMSG     MSGID(CPF2103)
+/*Ç********************************************************************************Ä*/
+
+             CHGVAR     VAR(&FileName) VALUE(%SST(&SourceFile 01 10))
+             CHGVAR     VAR(&Library)  VALUE(%SST(&SourceFile 11 10))
+             CHGVAR     VAR(&Member)   VALUE(%SST(&SourceFile 21 10))
+
+             IF         COND(&Library *EQ '*LIBL') THEN(DO)
+               RTVOBJD    OBJ(&Library/&Filename) OBJTYPE(*FILE) RTNLIB(&Library)
+               MONMSG     MSGID(CPF9810) EXEC(DO)
+                 SNDPGMMSG  MSG('Library Specified does not exist.') MSGTYPE(*DIAG)
+                 GOTO       CMDLBL(EndPgm)
+               ENDDO
+             ENDDO
+
+             CHKOBJ     OBJ(&Library) OBJTYPE(*LIB)
+             MONMSG     MSGID(CPF9801) EXEC(DO)
+               SNDPGMMSG  MSG('Library Specified does not exist.') MSGTYPE(*DIAG)
+               GOTO       CMDLBL(EndPgm)
+             ENDDO
+
+             IF         COND(&Library *EQ '*LIBL') THEN(DO)
+               RTVOBJD    OBJ(&Library/&Filename) OBJTYPE(*FILE) RTNLIB(&Library)
+             ENDDO
+             CHKOBJ     OBJ(&Library/&Filename) OBJTYPE(*FILE)
+             MONMSG     MSGID(CPF9801) EXEC(DO)
+               IF         COND(&CrtFile *EQ '0') THEN(DO)
+                 SNDPGMMSG  MSG('Filer Specified does not exist.  Create File +
+                              option must be used.') MSGTYPE(*DIAG)
+                 GOTO       CMDLBL(EndPgm)
+               ENDDO
+               IF         COND(&Member *EQ '*FIRST') THEN(DO)
+                 CHGVAR     VAR(&Member)   VALUE(&FileName)
+               ENDDO
+               CRTSRCPF   FILE(&Library/&FileName) RCDLEN(112) MBR(&Member)
+             ENDDO
+
+             IF         COND(&Member *EQ '*FIRST') THEN(DO)
+               RTVMBRD    FILE(&Library/&Filename) MBR(&Member) RTNMBR(&Member)
+             ENDDO
+             CHKOBJ     OBJ(&Library/&Filename) OBJTYPE(*FILE) MBR(&Member)
+             MONMSG     MSGID(CPF9815) EXEC(DO)
+               IF         COND(&CRTMEMBER *EQ '0') THEN(DO)
+                 SNDPGMMSG  MSG('Member Specified does not exist.  Add +
+                              member option must be used.') MSGTYPE(*DIAG)
+                 GOTO       CMDLBL(EndPgm)
+               ENDDO
+               ADDPFM     FILE(&Library/&FileName) MBR(&Member)
+             ENDDO
+  /*                                                                          */
+  /*         GETPFA     FILE(&Library/&Filename) MAXRCDLEN(&Recordlen)        */
+  /*         IF         COND(&RecordLen *NE 112) THEN(DO)                     */
+  /*         SNDPGMMSG  MSG('File must have a record length of 112.  +        */
+  /*                   Please use a different source file.') MSGTYPE(*DIAG)   */
+  /*           GOTO       CMDLBL(EndPgm)                                      */
+  /*         ENDDO                                                            */
+
+             CALL   PGM(EDTSRCR) PARM(&FileName &Library &Member &Sequence +
+                                          &SourceData &Action)
+
+EndPgm:
+             ENDPGM

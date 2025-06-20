@@ -1,0 +1,60 @@
+/* */
+goto tag1
+CPYFRMSTMF +
+             FROMSTMF('/HOME/user0174/BackupToPc/crtdir.+
+             clle') +
+             TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+             ILE/CRTDIR.MBR') MBROPT(*REPLACE)
+tag1:
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/chglibl+
+                          st.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/CHGLIBLST.MBR') MBROPT(*REPLACE)
+             CPYFRMSTMF +
+                FROMSTMF('/HOME/user0174/BackupToPc/cpyifssrcf.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/cpyifssrcf.mbr') mBROPT(*REPLACE)
+             CPYFRMSTMF +
+                FROMSTMF('/HOME/user0174/BackupToPc/cpysrcfifs.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/cpysrcfifs.mbr') mBROPT(*REPLACE)
+             CPYFRMSTMF +
+                FROMSTMF('/HOME/user0174/BackupToPc/intpgm.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/intpgm.mbr') mBROPT(*REPLACE)
+             CPYFRMSTMF +
+                FROMSTMF('/HOME/user0174/BackupToPc/rpgtest.rpgl') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/rpgtest.mbr') mBROPT(*REPLACE)
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/srcftoi+
+                          fs.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/srcftoifs.MBR') mBROPT(*REPLACE)
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/srcftoi+
+                          fs0.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/srcftoifs0.MBR') MBROPT(*REPLACE)
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/srcftoi+
+                          fs1.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/srcftoifs1.MBR') MBROPT(*REPLACE)
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/srcftoi+
+                          fs2.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/srcftoifs2.MBR') MBROPT(*REPLACE)
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/srcftoi+
+                          fs3.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/srcftoifs3.MBR') MBROPT(*REPLACE)
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/wrt2ifs+
+                          .rpgl') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/wrt2ifs.MBR') MBROPT(*REPLACE)
+ /*  */

@@ -1,0 +1,14 @@
+         /* Copy sourc file member FROM ifs */
+             DCL        VAR(&MSGDTA) TYPE(*CHAR) LEN(200)
+             CHGVAR     VAR(&MSGDTA) VALUE('crtdir.clle copied t0 +
+                          mbr crtdir.clle. .')
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0456/BackupToPc/crtdir.+
+                          clle') +
+                          TOMBR('/QSYS.LIB/USER04561.LIB/BACKUPTOPC.F+
+                          ILE/CRTDIR.MBR') MBROPT(*REPLACE)
+             CLRMSGQ    MSGQ(QTEMP/MYMSGQ)
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSGDTA) +
+                          TOMSGQ(QTEMP/MYMSGQ) MSGTYPE(*COMP)
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSGDTA) +
+                          MSGTYPE(*COMP)

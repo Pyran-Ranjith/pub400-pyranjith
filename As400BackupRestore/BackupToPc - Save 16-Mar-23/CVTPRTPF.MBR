@@ -1,0 +1,22 @@
+CVTPRTPF:   CMD        PROMPT('CONVERT PRINT TO PHYSICAL FILE') +
+
+            PARM       KWD(CMD) TYPE(*CMDSTR) LEN(3000) MIN(1) +
+                         PROMPT('COMMAND TO PRODUCE OUTPUT')
+            PARM       KWD(PRTF) TYPE(*NAME) LEN(10) MIN(1) +
+                         PROMPT('PRINTER FILE NAME')
+            PARM       KWD(TOFILE) TYPE(Q1) MIN(1) PROMPT('TO +
+                         PHYSICAL FILE')
+            PARM       KWD(MBROPT) TYPE(E1) PROMPT('MEMBER OPTIONS')
+
+Q1:         QUAL       TYPE(*NAME) LEN(10) MIN(1)
+
+            QUAL       TYPE(*NAME) LEN(10) DFT(*CURLIB) +
+                         SPCVAL((*CURLIB)) PROMPT('LIBRARY')
+
+ E1:         ELEM       TYPE(*NAME) LEN(10) DFT(*FIRST) +
+                          SPCVAL((*FIRST)) PROMPT('MEMBER TO +
+                          RECEIVE OUTPUT')
+
+             ELEM       TYPE(*CHAR) LEN(8) RSTD(*YES) DFT(*REPLACE) +
+                          VALUES(*REPLACE *ADD) PROMPT('REPLACE OR +
+                          ADD RECORDS')

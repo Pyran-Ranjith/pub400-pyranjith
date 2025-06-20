@@ -1,0 +1,60 @@
+/* Read outfile and copy those members in to ifs                     */
+             DCLF       FILE(QTEMP/DSPFDPF)
+             DCL        VAR(&VAR1) TYPE(*CHAR) LEN(30)
+             DCL        VAR(&FROMMBR) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&TOSTMF) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&TEXT) TYPE(*CHAR) LEN(50)
+             DCL        VAR(&CURusr) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCDATA) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&SRCDATA1) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&EOF) TYPE(*LGL)
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&msg   ) TYPE(*CHAR) LEN(100)
+             RTVDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) RTNVAR(&CURLIB)
+             RTVDTAARA  DTAARA(QTEMP/GLSRCFIL *ALL) RTNVAR(&SRCFIL)
+             CHGVAR     VAR(&CURUSR) VALUE(%SST(&CURLIB 1 8))
+             CLRPFM     FILE(&CURLIB/&SRCFIL) MBR(MBRLST)
+   RCVF
+             MONMSG     MSGID(CPF0864) EXEC(CHGVAR VAR(&EOF) +
+                          VALUE(*NOT &EOF))
+ DOWHILE COND(*not &EOF)
+             CHGVAR     VAR(&TEXT) VALUE(&MLMTXT)
+             CHGVAR     VAR(&FROMMBR) VALUE('/QSYS.LIB/' *CAT +
+                          &CURLIB *TCAT '.LIB/' *CAT &SRCFIL *TCAT +
+                          '.FILE/' *CAT &MLNAME *TCAT '.MBR')
+             CHGVAR     VAR(&TOSTMF) VALUE('/HOME/' *CAT &CURUSR +
+                          *TCAT '/' *CAT &SRCFIL *TCAT '/' *CAT +
+                          &MLNAME *TCAT '.' *TCAT &MLSEU2)
+             CHGVAR     VAR(&SRCDATA) VALUE(&MLNAME *CAT ' ' *CAT +
+                          &MLSEU2 *CAT ' ' *CAT &MLMTXT)
+             IF         COND(&MLNAME *EQ 'MBRLST') THEN(DO)
+                CHGVAR     VAR(&SRCDATA1) VALUE(&SRCDATA)
+             ENDDO
+             ELSE       CMD(DO)
+                EDTSRC     SRCFILE(MBRLST/&CURLIB/&SRCFIL) +
+                          SRCDATA(&SRCDATA) CRTFILE(*NO) CRTMEMBER(*NO)
+             ENDDO
+    /*       SNDUSRMSG  MSGID(CPF9898) MSGF(QCPFMSG) +
+                          MSGDTA(&FROMMBR)               */
+      /*     SNDUSRMSG  MSGID(CPF9898) MSGF(QCPFMSG) +
+                          MSGDTA(&TOSTMF)                     */
+
+             CPYTOSTMF  FROMMBR(&FROMMBR) TOSTMF(&TOSTMF) +
+                          STMFOPT(*REPLACE)
+RCVF
+             MONMSG     MSGID(CPF0864) EXEC(CHGVAR VAR(&EOF) +
+                          VALUE(*NOT &EOF))
+ENDDO
+                EDTSRC     SRCFILE(MBRLST/&CURLIB/&SRCFIL) +
+                          SRCDATA(&SRCDATA1) CRTFILE(*NO) CRTMEMBER(*NO)
+             EDTSRC     SRCFILE(MBRLST/&CURLIB/&SRCFIL) +
+                          SRCDATA(&SRCDATA1) ACTION(*END) +
+                          CRTFILE(*NO) CRTMEMBER(*NO)
+
+             CHGVAR     VAR(&MSG) VALUE('All members of the source +
+                          pf' *BCAT &SRCFIL *TCAT ' copyed to IFS . +
+                          . .')
+
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSG) +
+                          MSGTYPE(*COMP)

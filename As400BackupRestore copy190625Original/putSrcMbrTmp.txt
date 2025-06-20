@@ -1,0 +1,5 @@
+RANJITHJ
+aa499404
+cd "/QSYS.LIB/RANJITHJ1.LIB/R2SAMPLE1.FILE"
+lcd "C:\Users\ranjithj\Documents\As400BackupRestore"
+put TRANS.MBR

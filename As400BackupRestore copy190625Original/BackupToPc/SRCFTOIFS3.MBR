@@ -1,0 +1,22 @@
+                 DCLF       FILE(QTEMP/OTF1)
+             DCL        VAR(&VAR1) TYPE(*CHAR) LEN(30)
+DCL &EOF *LGL
+RCVF
+             MONMSG     MSGID(CPF0864) EXEC(CHGVAR VAR(&EOF) +
+                          VALUE(*NOT &EOF))
+DOWHILE COND(*not &EOF)
+/* do your fun file stuff here */
+             CHGVAR     VAR(&VAR1) VALUE(&MLSEU !! '       ' !! +
+                          &MLNAME !! '      ' !! ' ')
+                     SNDUSRMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&VAR1) +
+                                     MSGTYPE(*INFO)
+RCVF
+             MONMSG     MSGID(CPF0864) EXEC(CHGVAR VAR(&EOF) +
+                          VALUE(*NOT &EOF))
+ENDDO
+
+
+
+
+
+

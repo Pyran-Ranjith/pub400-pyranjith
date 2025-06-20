@@ -1,0 +1,7 @@
+CREATE TABLE PYRANJITH1.CUSTOMER (
+    CUSTID     DEC(5, 0)    NOT NULL,
+    NAME       CHAR(30),
+    CITY       CHAR(20),
+    PHONE      CHAR(10),
+    PRIMARY KEY (CUSTID)
+);

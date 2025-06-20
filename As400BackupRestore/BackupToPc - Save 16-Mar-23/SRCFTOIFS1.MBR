@@ -1,0 +1,31 @@
+      /*     RUNQRY QRYFILE((QTEMP/OTF1)) 1))     */
+      /*     Copy srcpf to ifs */
+       PGM
+                    DCL        VAR(&VAR1) TYPE(*CHAR) LEN(30)
+                    DCL        VAR(&REPLY) TYPE(*CHAR) LEN(1) +
+                                 VALUE('N')
+                    DCLF       FILE(QTEMP/OTF1)
+       READ:
+                    RCVF
+                    MONMSG     MSGID(CPF0864) EXEC(GOTO CMDLBL(END1))
+
+     /*             CHGVAR     VAR(&VAR1) VALUE(&CSNBR!!'       '!! +
+                               &CSNAME!!'      '!!+
+                               ' ')
+                    SNDUSRMSG  MSG('DO U WANT TO CONTINUE FILE READING') +
+                                 MSGRPY(&REPLY)  VALUES('Y' 'N')
+
+                    IF   (&REPLY='Y') DO
+                     SNDUSRMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&VAR1) +
+                                  MSGTYPE(*INFO)
+                     GOTO       CMDLBL(READ)
+                     ENDDO
+                     ELSE  DO
+                     GOTO       CMDLBL(END2)
+                     ENDDO                                */
+
+                     GOTO       CMDLBL(READ)
+        END1:
+                    SNDUSRMSG  MSG('THE END OF FILE IS REACHED')
+       END2:
+       ENDPGM

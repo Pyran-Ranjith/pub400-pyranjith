@@ -1,0 +1,13 @@
+     A*
+     A          R TCBOPOR                   JFILE(R473SUM1P R473SUM2P R473SUM3P)
+     A          J                           JOIN(1 2)
+     A                                      JFLD(TORDNO LFNCDE)
+     A          J                           JOIN(2 3)
+     A                                      JFLD(LFNFCL DENFCL)
+     A            TORDNO
+     A            TOONUM
+     A            DERFOU
+     A            DERBLF
+     A            DERCLC
+     A            DETQTY
+     A          K TOONUM

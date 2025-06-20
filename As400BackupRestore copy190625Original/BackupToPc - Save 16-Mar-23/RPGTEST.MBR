@@ -1,0 +1,36 @@
+                                   DISK
+
+     D Generic         DS          1012
+     D   SeqNbr                       6S 0
+     D   SrcDate                      6S 0
+     D                                5A
+     D   SpecType                     1A
+     D   Comment                      1A
+
+      * Pointer to generic structure
+
+     D pGeneric        S               *   INZ(%addr(Generic))
+
+      * C-spec structure mapped over generic structure
+
+     D CSpec           DS          1012    BASED(pGeneric)
+     D                               23A
+     D   CFactor1                    14A
+     D   CFactor2                    14A
+     D   CResult                     14A
+
+      * D-spec structure mapped over generic structure
+
+     D DSpec           DS          1012    BASED(pGeneric)
+     D                               18A
+     D   DName                       15A
+     D   DExternal                    1A
+
+     D   DPSDS                        1A
+     D   DDeclType                    2A
+     D   DFrom                        7A
+     D   DTo                          7A
+     D   DType                        1A
+     D   DDecimals                    2A
+     D                                1A
+     D   DKeywords                   37A

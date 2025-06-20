@@ -1,0 +1,1 @@
+ftp -s:C:\Users\ranjithj\Documents\As400BackupRestore\putObjTmp.txt PUB400.COM

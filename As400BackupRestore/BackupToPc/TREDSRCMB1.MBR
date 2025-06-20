@@ -1,0 +1,64 @@
+     FZRPGSRC   IF   F 1012        DISK
+
+     D Generic         DS          1012
+     D   SeqNbr                       6S 0
+     D   SrcDate                      6S 0
+     D                                5A
+     D   SpecType                     1A
+     D   Comment                      1A
+
+      * Pointer to generic structure
+
+     D pGeneric        S               *   INZ(%addr(Generic))
+
+      * C-spec structure mapped over generic structure
+
+     D CSpec           DS          1012    BASED(pGeneric)
+     D                               23A
+     D   CFactor1                    14A
+     D   COpCode                     10A
+     D   CFactor2                    14A
+     D   CResult                     14A
+
+      * D-spec structure mapped over generic structure
+
+     D DSpec           DS          1012    BASED(pGeneric)
+     D                               18A
+     D   DName                       15A
+     D   DExternal                    1A
+     D   DPSDS                        1A
+     D   DDeclType                    2A
+     D   DFrom                        7A
+     D   DTo                          7A
+     D   DType                        1A
+     D   DDecimals                    2A
+     D                                1A
+     D   DKeywords                   37A
+
+      *Read source file into generic structure
+
+     C                   READ      ZRPGSRC       Generic
+
+     C                   SELECT
+
+      * End of file
+     C                   WHEN      not %eof(SrcFile)
+
+      * Ignore comment lines
+     C                   WHEN      Comment = '*'
+
+      * Handle C-specs
+     C                   WHEN      SpecType = 'C'
+     C*                  CALLP     DoSomethingCSpec
+c    c     CSpec         dsply
+      * Update using the C-spec structure
+     C*                  UPDATE    ZRPGSRC       CSpec
+
+     C                   ENDSL
+
+
+
+
+
+
+

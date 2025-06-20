@@ -1,0 +1,36 @@
+/**************************************************************************************************/
+/* The following procedure allows the system operator to send a message to several display        */
+/* stations. When the system operator calls the program containing this procedure, it displays    */
+/* prompt which the system operator can enter the type of message to be sent and the text for     */
+/* the message. The procedure concatenates the date, time, and text of the message.               */
+/**************************************************************************************************/
+           PGM
+           DCLF WSMSGD
+           DCL &MSG TYPE(*CHAR) LEN(150)
+           DCL &HOUR TYPE(*CHAR) LEN(2)
+           DCL &MINUTE TYPE(*CHAR) LEN(2)
+           DCL &MONTH TYPE(*CHAR) LEN(2)
+           DCL &DAY TYPE(*CHAR) LEN(2)
+           DCL &WORKHR TYPE(*DEC) LEN(2 0)
+           SNDRCVF RCDFMT(PROMPT)
+           IF &IN91 RETURN /* Request was ended  */
+           RTVSYSVAL QMONTH RTNVAR(&MONTH)
+           RTVSYSVAL QDAY RTNVAR(&DAY)
+           RTVSYSVAL QHOUR RTNVAR(&HOUR)
+           IF (&HOUR *GT '12') DO /* Change from military time */
+           CHGVAR &WORKHR &HOUR
+           CHGVAR &WORKHR (&WORKHR - 12)
+           CHGVAR &HOUR &WORKHR
+           ENDDO
+           RTVSYSVAL QMINUTE RTNVAR(&MINUTE)
+           CHGVAR    &MSG ('From Sys Opr ' *CAT &MONTH *CAT '/' +
+                     *CAT &DAY +
+                     *BCAT &HOUR *CAT ':' *CAT &MINUTE +
+                     *BCAT &TEXT)
+           IF (&TYPE *EQ 'B') GOTO BREAK
+NORMAL: /* SNDPGMMSG MSG(&MSG) TOMSGQ(WS1 WS2 WS3)                                                */
+           GOTO ENDMSG
+BREAK:  /* SNDBRKMSG MSG(&MSG) TOMSGQ(WS1 WS2 WS3)                                                */
+ENDMSG:    SNDPGMMSG MSG('Message sent to display stations') +
+                     MSGTYPE(*COMP)
+           ENDPGM

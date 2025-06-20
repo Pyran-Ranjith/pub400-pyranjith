@@ -1,0 +1,17 @@
+/* Read outfile and create souce member                           */
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&msg   ) TYPE(*CHAR) LEN(100)
+             RTVDTAARA  DTAARA(QTEMP/GLCURLIB *ALL) RTNVAR(&CURLIB)
+             RTVDTAARA  DTAARA(QTEMP/GLSRCFIL *ALL) RTNVAR(&SRCFIL)
+     /*      CLRPFM     FILE(&CURLIB/&SRCFIL) MBR(MBRLST)       */
+             DSPFD      FILE(&CURLIB/&SRCFIL) TYPE(*RCDFMT) +
+                          OUTPUT(*OUTFILE) FILEATR(*PF) +
+                          OUTFILE(QTEMP/DSPFDUSROP)
+             CALL       PGM(QTEMP/USROPT$   )
+             CHGVAR     VAR(&MSG) VALUE('All recods of QAUOOPT pf' +
+                          *BCAT &SRCFIL *TCAT ' copyed to +
+                          QTEMP/DSPFDUSROP')
+
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSG) +
+                          MSGTYPE(*COMP)

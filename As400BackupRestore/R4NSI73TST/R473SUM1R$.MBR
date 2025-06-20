@@ -1,0 +1,173 @@
+      *
+     H COPYRIGHT('Ranjith Jayawardana All rights reserved.')
+     H option(*nodebugio:*srcstmt:*nounref) dftactgrp(*no)
+
+     FR473SUM1d CF   E             WORKSTN indds(Dspf) sfile(SFL01:Z1RRN)
+      *With only join logical file
+     FR473SUM1l IF   E           K DISK    Rename(TCBOPOR:filfmt1)              TCBOPO:TORDNOF jlf
+     FJOINLF2   IF   E           K DISK    Rename(TCBOPOR:filfmt2)              TCBOPO:TOONUMF jlf
+     FR473SUM3l IF   E           K DISK    Rename(D2DGENDf:filfmt3)             D2DGEND:DERBLF jlf
+
+     D PgmDs          SDS                  qualified
+     D  PgmName          *proc
+
+     D Dspf            DS                  qualified
+     D  Exit                   3      3N
+     D  Refresh                5      5N
+     D  SflDspCtl             30     30N
+     D  SflDsp                31     31N
+      *
+     D MaxSfl          C                   9999                                 DDS:SFLSIZ
+      *
+     D Cur             DS                  qualified                            Current positions
+     D  PositionAll            1     29A
+     D  Position1              1      7S 0
+     D  Position2              8     14S 0
+     D  Position3             15     29
+     D Cur0            DS                  qualified                            Current positions
+     D  PositionAll            1     29A
+     D  Position1              1      7S 0
+     D  Position2              8     14S 0
+     D  Position3             15     29
+     D Prv             DS                  qualified                            Previous positions
+     D  PositionAll            1     29A
+     D  Position1              1      7S 0
+     D  Position2              8     14S 0
+     D  Position3             15     29
+      *
+     D SearchField     S              1A
+      *  -----------------------------------------------------------
+      *  Initialize . .
+     c                   callp     Initialize()
+      *  -------------- B O D Y ------------------------------------
+     c     *loval        setll     filfmt1
+     c                   callp     LoadSubfile()
+     c                   dow       (1 = 1)
+     c                   write     FOOTER
+     c                   exfmt     CTL01
+     c                   callp     GetScrnFlds()
+     c                   if        (Dspf.Exit)
+     c                   leave
+      *  Refrsh . .
+     c                   elseif    (Dspf.Refresh)
+     c                   callp     Refresh()
+     c                   iter
+      * Position to. .
+     c                   elseif    (Z1POSITION>0 or Z2POSITION>0
+     c                             or Z3POSITION<>*blanks)
+     c                   callp     PositionTo()
+     c                   iter
+      *
+     c                   endif
+      *  Option processing. .
+     c                   if        (Dspf.SflDsp)                                if subfile not empty
+     c                   callp     ReadSubfile()
+     c                   endif
+     c                   enddo
+      *
+     c                   eval      *inlr = *on
+      *  Sub procedures ----------------------------------------
+     PGetScrnFlds      B
+     c                   eval      Cur.Position1 = Z1POSITION
+     c                   eval      Cur.Position2 = Z2POSITION
+     c                   eval      Cur.Position3 = Z3POSITION
+     P                 E
+      *
+     PLoadSubfile      B
+     c                   eval      Dspf.SflDspCtl = *off
+     c                   eval      Dspf.SflDsp = *off
+     c                   write     CTL01
+     c                   eval      Dspf.SflDspCtl = *on
+     c                   eval      Z1OPT = ' '
+     c                   for       Z1RRN = 1 to MaxSfl
+      *  Ppulate from file TCBOPOD fields  TORDNO and TOONUM
+     c                   if        SearchField = '3'
+     c                   read      filfmt3
+      *  Ppulate from file TCBOPOD fields  TORDNO and TOONUM
+     c                   elseif    SearchField = '2'
+     c                   read      filfmt2
+     c                   else
+     c                   read      filfmt1
+     c                   endif
+      *
+     c                   if        (%eof)
+     c                   leave
+     c                   endif
+      *
+     c                   write     SFL01
+     c                   endfor
+     c                   if        (Z1RRN > 1)
+     c                   eval      Dspf.SflDsp = *on
+     c                   endif
+     P                 E
+
+     PReadSubfile      B
+     c                   dow       (1 = 1)
+     c                   readc     SFL01                                        if opt changed
+     c                   if        (%eof)
+     c                   leave
+     c                   endif
+      *  Z1OPT handling
+     c                   if        Z1OPT = '5'
+     c                   write     headcom
+     c                   exfmt     display
+     c                   eval      Dspf.Exit = *off
+     c                   eval      Z1OPT = ' '
+     c                   endif
+      *
+     c                   eval      Z1OPT = ' '
+     c                   update    SFL01
+     c                   enddo
+     P                 E
+     PInitialize       B
+     c                   eval      Z1SCREEN = %trimr(PgmDs.PgmName) + '-1'
+     c                   eval      Z1DATE = %date()
+     c                   eval      Prv.PositionAll = *all'0'
+     c                   eval      Cur.PositionAll = *all'0'
+     c                   eval      SearchField = '1'
+     P                 E
+      *
+     PRefresh          B
+     c                   eval      Z1POSITION = 0
+     c                   eval      Z2POSITION = 0
+     c                   eval      Cur.PositionAll = *all'0'
+     c                   eval      Prv.PositionAll = *all'0'
+     c                   eval      SearchField = '1'
+     c     *loval        setll     filfmt1
+     c                   callp     LoadSubfile()
+     P                 E
+      *
+     PPositionTo       B
+     c                   if        (Cur.Position1 <> Prv.Position1)
+     c                   eval      SearchField = '1'
+     c                   eval      Prv.Position1= Cur.Position1
+     c                   eval      Z2POSITION   = 0
+     c                   eval      Prv.Position2 = 0
+     c                   eval      Z3POSITION   = *blanks
+     c                   eval      Prv.Position3 = *blanks
+     c     Z1POSITION    setll     filfmt1
+     c                   callp     LoadSubfile()
+     c                   elseif    (Cur.Position2 <> Prv.Position2)
+     c                   eval      SearchField = '2'
+     c                   eval      Prv.Position2= Cur.Position2
+     c                   eval      Z1POSITION   = 0
+     c                   eval      Prv.Position1 = 0
+     c                   eval      Z3POSITION   = *blanks
+     c                   eval      Prv.Position3 = *blanks
+     c     Z2POSITION    setll     filfmt2
+     c                   callp     LoadSubfile()
+     c                   elseif    (Cur.Position3 <> Prv.Position3)
+     c                   eval      SearchField = '3'
+     c                   eval      Prv.Position3= Cur.Position3
+     c                   eval      Z1POSITION   = 0
+     c                   eval      Prv.Position1 = 0
+     c                   eval      Z2POSITION   = 0
+     c                   eval      Prv.Position2 = 0
+     c     Z3POSITION    setll     filfmt3
+     c                   callp     LoadSubfile()
+     c                   endif
+     P                 E
+      *
+     PR1               B
+     P                 E
+      *

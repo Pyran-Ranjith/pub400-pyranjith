@@ -1,0 +1,77 @@
+     A* Free Form Menu: MNUMAIN
+     A*%%TS  SD  20190727  160955  USER0174    REL-V7R3M0  5770-WDS
+     A*%%EC
+     A                                      DSPSIZ(24 80 *DS3                  -
+     A                                             27 132 *DS4)
+     A                                      CHGINPDFT
+     A                                      INDARA
+     A                                      PRINT(*LIBL/QSYSPRT)
+     A          R MNUMAIN
+     A*%%TS  SD  20190727  154158  USER0174    REL-V7R3M0  5770-WDS
+     A                                      DSPMOD(*DS3)
+     A                                      LOCK
+     A                                      SLNO(01)
+     A                                      CLRL(*ALL)
+     A                                      ALWROL
+     A                                      CF03
+     A                                      HELP
+     A                                      HOME
+     A                                      HLPRTN
+     A                                  1  2'MNUMAIN'
+     A                                      COLOR(BLU)
+     A                                  1 33'   Main Menu'
+     A                                      DSPATR(HI)
+     A                                  3  2'Select one of the following:'
+     A                                      COLOR(BLU)
+     A                                  5  7'1.'
+     A                                  6  7'2.'
+     A                                  7  7'3.'
+     A* CMDPROMPT  Do not delete this DDS spec.
+     A                                019  2'Selection or command              -
+     A                                          '
+     A                                  5 10'Initial'
+     A                                  5 18'program'
+     A                                  6 10'Copy'
+     A                                  6 15'all'
+     A                                  6 19'sourc'
+     A                                  6 25'file'
+     A                                  6 30'members'
+     A                                  6 38'to'
+     A                                  6 41'IFS'
+     A                                  6 80' '
+     A                                  7  3' '
+     A                                  7 10'Update'
+     A                                  7 17'all'
+     A                                  7 21'atributes'
+     A                                  7 31'of'
+     A                                  7 34'source'
+     A                                  7 41'physicalfile'
+     A                                  7 80' '
+     A                                  5 75'INTPGM'
+     A                                  8  7'4.'
+     A                                  8 10'Creat'
+     A                                  8 16'menues'
+     A                                  8 74'CRTMNUS'
+     A                                  9  7'5.'
+     A                                  9 10'Update'
+     A                                  9 17'MBRLST.TXT'
+     A                                  9 28'source'
+     A                                  9 35'member'
+     A                                 10  7'6.'
+     A                                 10 10'Copy'
+     A                                 10 15'QAUOOPT'
+     A                                 10 23'pf'
+     A                                 10 26'to'
+     A                                 10 29'QAUOOPT'
+     A                                 10 37'srf'
+     A                                 10 41'file'
+     A                                 10 46'member'
+     A                                 11  7'7.'
+     A                                 11 10'Copy'
+     A                                 11 15'QAUOOPT'
+     A                                 11 23'srf'
+     A                                 11 27'file'
+     A                                 11 32'member'
+     A                                 11 39'to'
+     A                                 11 42'QAUOOPT'
+     A                                 11 50'pf'

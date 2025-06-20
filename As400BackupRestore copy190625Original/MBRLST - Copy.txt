@@ -1,0 +1,36 @@
+CHGLIBLST  CLLE       Change library list
+CPYIFSSRCF CLLE       Copy sourc file member FROM ifs
+CPYSRCFIFS CLLE       Copy sourc file member to ifs
+CP1MBFRIFS CLLE       Copy 1st member from ifs
+CP1MBFRIF1 CLLE       Copy members rom ifs
+CRTDIR     CLLE       Create Directory Backup To Pc
+CRTDTAARE  CLLE       Crt Dataarea for globle variables
+CVTPRTPF   CMD        Convert print to physical file
+CVTPRTPF$  CLLE       Convert print to physical file
+CVTPRTPFB0 CLLE       Retrive curlib
+DESCRIPT   TEXT       EDTSRC - Source Member Description
+EDTSRC     CMD        EDTSRC - Edit Source Member
+EDTSRCC    CLLE       EDTSRC - Edit Source Member
+EDTSRCINIT CLLE       EDTSRC - Edit Source Member Initial pgm
+EDTSRCR    RPGLE      EDTSRC - Edit Source Member
+INTPGM     CLLE       Initial pgm                                     #1
+LSTUSRPRF  CLLE       List disabled user profiles
+MBRLSTOUTF CLLE       Write mbr lst to outf
+RPGTEST    CLLE       Rpg testing
+RTVCURLIB  CLLE       Retrive curlib
+SRCFTOIFS  CLLE       Read outfile and copy those members in to ifs   #2
+SRCFTOIFS0 RPGLE
+SRCFTOIFS1 RPGLE
+SRCFTOIFS2 CLLE
+SRCFTOIFS3 CLLE
+SRCFTOIFS4 CLLE
+SRCFTOIFS9 CLLE
+SRCFTOPC   CLLE       Read outfile and copy those members in to ifs   #2
+SRCRCDADD  RPGLE      Add a record to src file member
+TCHKIFSOBJ CLLE       Test: Check IFS object
+TREDSRCMBR RPG        Test-Read src pf member             not OK
+TREDSRCMB1 RPGLE      Test-Read src pf member
+WRT2IFS    CLLE
+WSMSGC     CLLE       Sending an informational message to multiple users
+WSMSGD     DSPF       Sending an informational message to multiple users
+MBRLST     TXT        List of all mebers in src file

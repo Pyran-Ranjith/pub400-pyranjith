@@ -1,0 +1,13 @@
+/* */
+goto tag1
+CPYFRMSTMF +
+             FROMSTMF('/HOME/user0174/BackupToPc/crtdir.+
+             clle') +
+             TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+             ILE/CRTDIR.MBR') MBROPT(*REPLACE)
+tag1:
+             CPYFRMSTMF +
+                          FROMSTMF('/HOME/user0174/BackupToPc/SRCFTOI+
+                          FS7.clle') +
+                          TOMBR('/QSYS.LIB/USER01741.LIB/BACKUPTOPC.F+
+                          ILE/SRCFTOIFS7.MBR') MBROPT(*REPLACE)

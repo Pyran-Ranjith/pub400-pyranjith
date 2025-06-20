@@ -1,0 +1,118 @@
+   /*                                                                       */
+         /*  Initial pgm */
+             DCL        VAR(&PRJID) TYPE(*CHAR) LEN(2)
+             DCL        VAR(&SRCLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&OBJLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&PUBLIB) TYPE(*CHAR) LEN(10)
+
+             DCL        VAR(&MSGDTA) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&PRJID1) TYPE(*CHAR) LEN(2)
+
+             CHGVAR     VAR(&PRJID) VALUE(R0)
+             CHGVAR     VAR(&SRCLIB) VALUE(RANJITHJ1)
+             CHGVAR     VAR(&SRCFIL) VALUE(R0GLOBLE)
+             CHGVAR     VAR(&OBJLIB) VALUE(QTEMP)
+             CHGVAR     VAR(&PUBLIB) VALUE(&SRCLIB) /* QGPL IS NOW NOT AUTHORIZED */
+/*  Change library list   */
+             CRTBNDCL   PGM(&OBJLIB/R0CHLBLS) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL       PGM(&OBJLIB/R0CHLBLS) PARM(&PRJID &SRCFIL +
+                          &SRCLIB &OBJLIB &PUBLIB)
+ /* If project not exist create it */
+             CRTBNDRPG  PGM(&OBJLIB/R0INTPGM2 ) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL PGM(R0INTPGM2) PARM(R0 R0PARA)
+             CALL PGM(R0INTPGM2) PARM(R2 R2PARA)
+             GOTO       CMDLBL(PROCESS)
+
+/*           CRTBNDCL   PGM(&OBJLIB/R0PRJDA ) SRCFILE(&SRCLIB/&SRCFIL)      */
+/* Create R0RAMETER cmd */
+             CRTCMD     CMD(&PUBLIB/R0PARMTR) PGM(R0PARMTRC) +
+                          SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&PUBLIB/R0PARMTRC) SRCFILE(&SRCLIB/&SRCFIL)
+         /* Create globle variables */
+         /* If dtaarea not exist create it */
+ /* GET SOURCE FILE */
+LOOP:       RTVDTAARA  DTAARA(&OBJLIB/&PRJID  (4 10)) RTNVAR(&SRCFIL)
+             MONMSG     MSGID(CPF1015 CPF1021) EXEC(DO) /* not found */
+   /*        ?          R0PARMTR ??PRJID(&PRJID) ??SRCFIL(&SRCFIL) +        */
+   /*                     ??SRCLIB(&SRCLIB) ??OBJLIB(&OBJLIB) +             */
+   /*                     ??PUBLIB(&PUBLIB)                                 */
+             CALL R0PRJDA R0
+             GOTO       CMDLBL(LOOP)
+             ENDDO
+ /* GET CRLIB */
+ LOOP1:      CHKOBJ     OBJ(&OBJLIB/&PRJID) OBJTYPE(*DTAARA)
+             MONMSG     MSGID(CPF9801) EXEC(DO) /* not found */
+   /*        ?          R0PARMTR ?*PRJID(&PRJID) ??SRCFIL(&SRCFIL) +        */
+   /*                     ??SRCLIB(&SRCLIB) ??OBJLIB(&OBJLIB) +             */
+   /*                     ??PUBLIB(&PUBLIB)                                 */
+             CRTDSPF    FILE(&OBJLIB/R0TEST2D) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG  PGM(&OBJLIB/R0TEST2R1 ) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL R0PRJDA R0
+             GOTO       CMDLBL(LOOP1)
+             ENDDO
+             RTVDTAARA  DTAARA(&OBJLIB/&PRJID (1 2)) RTNVAR(&PRJID1)
+             MONMSG     MSGID(CPF1015 CPF1021) EXEC(DO) /* not found */
+             R0PARMTR   PRJID(&PRJID) SRCFIL(&SRCFIL) +
+                          SRCLIB(&SRCLIB) OBJLIB(&OBJLIB) +
+                          PUBLIB(&PUBLIB)
+             GOTO       CMDLBL(LOOP1)
+             ENDDO
+ PROCESS:
+            RTVDTAARA  DTAARA(&OBJLIB/&PRJID  (4 10)) RTNVAR(&SRCFIL)
+            RTVDTAARA  DTAARA(&OBJLIB/&PRJID  (15 10)) RTNVAR(&SRCLIB)
+            RTVDTAARA  DTAARA(&OBJLIB/&PRJID  (26 10)) RTNVAR(&OBJLIB)
+            RTVDTAARA  DTAARA(&OBJLIB/&PRJID  (37 10)) RTNVAR(&PUBLIB)
+            RTVDTAARA  DTAARA(&OBJLIB/&PRJID  (15 10)) RTNVAR(&SRCLIB)
+/* Globel Programs */
+             CRTBNDCL   PGM(&OBJLIB/R0CRMBLS) SRCFILE(&SRCLIB/&SRCFIL)
+/* Local Programs */
+   /*        CRTDSPF    FILE(&OBJLIB/R1DFCUST11) SRCFILE(&SRCLIB/&SRCFIL)   */
+   /*                                                                       */
+   /*        CRTBNDRPG  PGM(&OBJLIB/R1RLFMNT11) SRCFILE(&SRCLIB/&SRCFIL)    */
+   /*                                                                       */
+   /*                                                                       */
+/* Temporary programs */
+/*   DSPF             */
+             CRTDSPF    FILE(&OBJLIB/R0DFEX01  ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTDSPF    FILE(&OBJLIB/R0DFWN1   ) SRCFILE(&SRCLIB/&SRCFIL)
+/*   CLLE             */
+             CRTBNDCL   PGM(&OBJLIB/R0PRJDA   ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/R0CLEX01  ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/R0CRMBLS  ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/R0CRMN    ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/R0DLTOBJ  ) SRCFILE(&SRCLIB/&SRCFIL)
+/*   RPGLE            */
+   /*        CRTBNDRPG  PGM(&OBJLIB/R0PSDS    ) SRCFILE(&SRCLIB/&SRCFIL)    */
+   /*        CRTBNDRPG  PGM(&OBJLIB/R0RLCPSC  ) SRCFILE(&SRCLIB/&SRCFIL)    */
+             CRTBNDRPG  PGM(&OBJLIB/R0RLEX01  ) SRCFILE(&SRCLIB/&SRCFIL)
+   /* Err->  CRTBNDRPG  PGM(&OBJLIB/R0RLRTVL  ) SRCFILE(&SRCLIB/&SRCFIL)    */
+             CRTBNDRPG  PGM(&OBJLIB/R0RLWN1   ) SRCFILE(&SRCLIB/&SRCFIL)
+   /* Err->  CRTBNDRPG  PGM(&OBJLIB/R0RLWN1_T1) SRCFILE(&SRCLIB/&SRCFIL)     */
+             CRTBNDRPG  PGM(&OBJLIB/R0RLWN1_T2) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG  PGM(&OBJLIB/R0RLWN1_T3) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG  PGM(&OBJLIB/R0RLWN1_T4) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG  PGM(&OBJLIB/R0RLWN1_T5) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG  PGM(&OBJLIB/R0RLZZZZ1 ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG  PGM(&OBJLIB/R0TST1    ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/TMP       ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/TMP1      ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDCL   PGM(&OBJLIB/TMP1A     ) SRCFILE(&SRCLIB/&SRCFIL)
+
+
+/*   MENU             */
+   /*        CRTMNU     MENU(QTEMP/MNUMAIN) TYPE(*DSPF) +                   */
+   /*                     DSPF(QTEMP/*MENU) MSGF(QTEMP/*MENU)               */
+
+             CRTBNDCL   PGM(&OBJLIB/R0CRMN    ) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL PGM(R0CRMN) PARM(R0MNMAIN R0 &OBJLIB)
+    /*       CALL PGM(R0CRMN) PARM(R0MNMAIN R0 *CURLIB)                     */
+             CALL PGM(R0CRMN) PARM(R2MNMAIN R2 &OBJLIB)
+   /* End pgm                                                               */
+             CHGVAR     VAR(&MSGDTA) VALUE(&PRJID *BCAT 'Initial pgm +
+                          executed succesfuly')
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSGDTA) +
+                          MSGTYPE(*COMP)
+END:
+  /*         DLTOVR     FILE(&SRCFIL) LVL(*JOB)                             */
+

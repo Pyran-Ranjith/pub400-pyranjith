@@ -1,0 +1,66 @@
+/*                                                                          */
+         /*  Initial pgm */
+             DCL        VAR(&PRJID) TYPE(*CHAR) LEN(2)
+             DCL        VAR(&PRJID1) TYPE(*CHAR) LEN(2)
+             DCL        VAR(&PRJNAM) TYPE(*CHAR) LEN(8)
+             DCL        VAR(&SRCLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCFIL) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&OBJLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&PUBLIB) TYPE(*CHAR) LEN(10)
+
+             DCL        VAR(&MSGDTA) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&PRJID1) TYPE(*CHAR) LEN(2)
+             CHGVAR     VAR(&PRJID) VALUE(R4)
+             CHGVAR     VAR(&PRJID1) VALUE(73)
+             CHGVAR     VAR(&PRJNAM) VALUE(NSI73)
+             CHGVAR     VAR(&SRCLIB) VALUE(RANJITHJ1)
+             CHGVAR     VAR(&SRCFIL) VALUE(&PRJID *TCAT &PRJNAM)
+             CHGVAR     VAR(&OBJLIB) VALUE(QTEMP)
+             CHGVAR     VAR(&PUBLIB) VALUE(&SRCLIB) /* QGPL IS NOW NOT AUTHORIZED */
+
+/*  GOTO ENDMSG                                                             */
+/*   Comilation       */
+             DLTF       FILE(&OBJLIB/R473SUM1L )
+             MONMSG     MSGID(CPF2105) /* file not found */
+             DLTF       FILE(&OBJLIB/R473SUM2L )
+             MONMSG     MSGID(CPF2105) /* file not found */
+             DLTF       FILE(&OBJLIB/R473SUM3L )
+             MONMSG     MSGID(CPF2105) /* file not found */
+
+             DLTF       FILE(&OBJLIB/R473SUM1P )
+             MONMSG     MSGID(CPF2105) /* file not found */
+             DLTF       FILE(&OBJLIB/R473SUM2P )
+             MONMSG     MSGID(CPF2105) /* file not found */
+             DLTF       FILE(&OBJLIB/R473SUM3P )
+             MONMSG     MSGID(CPF2105) /* file not found */
+
+             CRTPF      FILE(&OBJLIB/R473SUM1P ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTPF      FILE(&OBJLIB/R473SUM2P ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTPF      FILE(&OBJLIB/R473SUM3P ) SRCFILE(&SRCLIB/&SRCFIL)
+
+             CRTLF      FILE(&OBJLIB/R473SUM1L ) SRCFILE(&SRCLIB/&SRCFIL)
+/*           CRTLF      FILE(&OBJLIB/JOINLF2   ) SRCFILE(&SRCLIB/&SRCFIL)   */
+             CRTLF      FILE(&OBJLIB/R473SUM2L ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTLF      FILE(&OBJLIB/R473SUM3L ) SRCFILE(&SRCLIB/&SRCFIL)
+
+             CRTBNDCL    PGM(&OBJLIB/R473SUM1C  ) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL        PGM(&OBJLIB/R473SUM1C  ) /*Populate PF */
+             CRTBNDCL    PGM(&OBJLIB/R473SUM2C  ) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL        PGM(&OBJLIB/R473SUM2C  ) /*Populate PF */
+             CRTBNDCL    PGM(&OBJLIB/R473SUM3C  ) SRCFILE(&SRCLIB/&SRCFIL)
+             CALL        PGM(&OBJLIB/R473SUM3C  ) /*Populate PF */
+/*      GOTO ENDMSG                                                         */
+             CRTDSPF     FILE(&OBJLIB/R473SUM1D ) SRCFILE(&SRCLIB/&SRCFIL)
+             CRTBNDRPG   PGM(&OBJLIB/R473SUM1R ) SRCFILE(&SRCLIB/&SRCFIL)
+/* Added after 11-Mar-2023                                                  */
+             CRTBNDRPG   PGM(&OBJLIB/R473SUM2R ) SRCFILE(&SRCLIB/&SRCFIL)   /* Add 11-Mar-2023 */
+
+   /* End pgm                                                               */
+ENDMSG:
+             CHGVAR     VAR(&MSGDTA) VALUE(&PRJID *TCAT '.' *CAT +
+                          &PRJID1 *BCAT 'Initial pgm executed +
+                          succesfuly')
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSGDTA) +
+                          MSGTYPE(*COMP)
+END:
+  /*         DLTOVR     FILE(&SRCFIL) LVL(*JOc)                             */

@@ -1,0 +1,1 @@
+ftp -s:E:\Users\Public\Pub400\pub400-pyranjith\As400BackupRestore\putSrcMbrTmp#.txt PUB400.COM

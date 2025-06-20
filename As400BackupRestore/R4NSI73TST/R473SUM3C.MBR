@@ -1,0 +1,37 @@
+/*ˆ**************************************************************************/
+/*ˆClear file and add records                                               */
+/*ˆ**************************************************************************/
+/*                                                                          */
+     PGM
+     DCL        VAR(&FILE ) TYPE(*CHAR) LEN(10) VALUE('R473SUM3P ')
+             DCL        VAR(&MSGDTA    ) TYPE(*CHAR) LEN(100)
+             DCL        VAR(&S) TYPE(*CHAR) LEN(200)
+
+/*‚Clear file                                                                */
+             CLRPFM     FILE(&FILE)
+/*‚Set nalues to variable and run sql staement                               */
+   CHGVAR VAR(&S) VALUE('492, ''64811129'', ''L'', 700, 1, 6000029, 2, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+   CHGVAR VAR(&S) VALUE('492, ''64811130'', ''L'', 700, 1, 6000030, 1, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+   CHGVAR VAR(&S) VALUE('492, ''64811137'', ''L'', 700, 2, 6000031, 1, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+   CHGVAR VAR(&S) VALUE('492, ''64811138'', ''L'', 700, 2, 6000032, 1, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+   CHGVAR VAR(&S) VALUE('492, ''64811138'', ''L'', 700, 2, 6000033, 1, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+   CHGVAR VAR(&S) VALUE('492, ''64810842'', ''L'', 700, 2, 6000034, 1, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+   CHGVAR VAR(&S) VALUE('492, ''64810843'', ''L'', 700, 2, 6000035, 1, '''', ''N'' ')
+             CALLSUBR   SUBR(runsqllin)
+/*‚Exit msg */
+             CHGVAR     VAR(&MSGDTA) VALUE('File' *BCAT &FILE *BCAT +
+                          'Populated succesfuly')
+             SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) MSGDTA(&MSGDTA) +
+                          MSGTYPE(*COMP)
+/*‚S U B   R O U T E N E S  */
+             SUBR       SUBR(runsqllin)
+             RUNSQL SQL('INSERT INTO ' !! &FILE !<' VALUES(' !! &s !< ')') COMMIT(*NONE)
+             ENDSUBR
+/*‚End of program */
+                   ENDPGM
