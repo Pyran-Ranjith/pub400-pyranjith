@@ -5,7 +5,7 @@
 
 - to add all files at once
 git add . 
-git commit -m "190625At0839 1st update" 
+git commit -m "200625At1537 2nd update" 
 git push 
 
 ### Basic Configuration:
